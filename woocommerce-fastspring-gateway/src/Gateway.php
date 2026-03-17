@@ -21,8 +21,8 @@ class Gateway extends WC_Payment_Gateway {
 	public function __construct() {
 		$this->id                 = Constants::PLUGIN_SLUG;
 		$this->method_title       = __( 'FastSpring', 'woocommerce-fastspring-gateway' );
-		$this->method_description = __( 'Accept payments via FastSpring popup or hosted checkout.', 'woocommerce-fastspring-gateway' );
-		$this->has_fields         = true;
+		$this->method_description = __( 'Accept payments via FastSpring checkout. Customers are redirected to FastSpring to complete payment.', 'woocommerce-fastspring-gateway' );
+		$this->has_fields         = false;
 		$this->supports           = array(
 			'products',
 			'refunds',
@@ -73,45 +73,18 @@ class Gateway extends WC_Payment_Gateway {
 			return false;
 		}
 
-		return '' !== $this->get_option( 'access_key' )
-			&& '' !== $this->get_option( 'private_key' )
+		return '' !== $this->get_option( 'api_username' )
+			&& '' !== $this->get_option( 'api_password' )
 			&& '' !== $this->get_option( 'storefront_path' );
 	}
 
 	/**
-	 * Enqueue frontend checkout scripts.
+	 * Enqueue minimal frontend styles for payment icons.
 	 */
 	public function enqueue_scripts(): void {
 		if ( ( ! is_checkout() && ! is_checkout_pay_page() ) || ! $this->is_available() ) {
 			return;
 		}
-
-		wp_enqueue_script(
-			'fastspring-sbl',
-			Constants::SBL_SCRIPT_URL,
-			array(),
-			null, // External script, version managed by FastSpring.
-			true
-		);
-
-		wp_enqueue_script(
-			'wc-fastspring-checkout',
-			plugins_url( 'assets/js/checkout.js', WC_FASTSPRING_MAIN_FILE ),
-			array( 'jquery', 'fastspring-sbl' ),
-			Constants::VERSION,
-			true
-		);
-
-		wp_localize_script(
-			'wc-fastspring-checkout',
-			'wc_fastspring_params',
-			array(
-				'ajax_url' => \WC_AJAX::get_endpoint( '%%endpoint%%' ),
-				'nonce'    => array(
-					'receipt' => wp_create_nonce( 'wc-fastspring-receipt' ),
-				),
-			)
-		);
 
 		$css = '.woocommerce-checkout #payment ul.payment_methods li img.fastspring-icon{max-width:40px;padding-left:3px;margin:0}'
 			. '.woocommerce-checkout #payment ul.payment_methods li img.fastspring-icon-ideal{max-height:26px}'
@@ -157,24 +130,13 @@ class Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
-	 * Display payment fields on checkout.
-	 */
-	public function payment_fields(): void {
-		$description = $this->get_description();
-		if ( $description ) {
-			echo wp_kses_post( wpautop( wptexturize( trim( $description ) ) ) );
-		}
-	}
-
-	/**
-	 * Process the payment and build the FastSpring session payload.
+	 * Process the payment via FastSpring Sessions API.
 	 *
-	 * Unlike a typical gateway that returns a redirect URL, this returns
-	 * a "session" with encrypted payload data. The frontend JS intercepts
-	 * the response, opens the FastSpring popup, and handles receipt flow.
+	 * Creates a checkout session and redirects the customer to the FastSpring
+	 * hosted checkout page. Order completion is handled asynchronously by webhooks.
 	 *
 	 * @param int $order_id WooCommerce order ID.
-	 * @return array{result: string, session?: array}
+	 * @return array{result: string, redirect?: string}
 	 */
 	public function process_payment( $order_id ): array {
 		$order = wc_get_order( $order_id );
@@ -184,16 +146,106 @@ class Gateway extends WC_Payment_Gateway {
 			return array( 'result' => 'failure' );
 		}
 
-		WC()->session->set( 'fastspring_order_id', $order_id );
+		$client = ApiClient::from_settings();
 
-		$is_test = 'yes' === $this->get_option( 'testmode' );
-		$payload = PayloadBuilder::build_secure_payload( $order, $is_test );
+		if ( ! $client ) {
+			wc_add_notice( __( 'FastSpring API credentials are not configured.', 'woocommerce-fastspring-gateway' ), 'error' );
+			return array( 'result' => 'failure' );
+		}
 
-		Plugin::log( sprintf( 'Processing payment for order #%d', $order_id ) );
+		// Build items from order line items.
+		$items = array();
+
+		foreach ( $order->get_items() as $item ) {
+			if ( ! $item instanceof \WC_Order_Item_Product ) {
+				continue;
+			}
+
+			$product = $item->get_product();
+			if ( ! $product ) {
+				continue;
+			}
+
+			$fs_path = $product->get_meta( '_fastspring_product_path' );
+			if ( empty( $fs_path ) ) {
+				$fs_path = $product->get_sku();
+			}
+
+			if ( empty( $fs_path ) ) {
+				wc_add_notice(
+					sprintf(
+						/* translators: %s: product name */
+						__( 'Product "%s" is not linked to a FastSpring product. Set its FastSpring Product Path or SKU.', 'woocommerce-fastspring-gateway' ),
+						$product->get_name()
+					),
+					'error'
+				);
+				return array( 'result' => 'failure' );
+			}
+
+			$items[] = array(
+				'product'  => sanitize_text_field( $fs_path ),
+				'quantity' => $item->get_quantity(),
+			);
+		}
+
+		if ( empty( $items ) ) {
+			wc_add_notice( __( 'No items to process.', 'woocommerce-fastspring-gateway' ), 'error' );
+			return array( 'result' => 'failure' );
+		}
+
+		// Build session request.
+		$session_data = array(
+			'items' => $items,
+			'tags'  => array(
+				'store_order_id'  => (string) $order->get_id(),
+				'store_order_key' => $order->get_order_key(),
+			),
+		);
+
+		// Add customer contact info.
+		$email = $order->get_billing_email();
+		if ( $email ) {
+			$session_data['contact'] = array_filter( array(
+				'email'   => $email,
+				'first'   => $order->get_billing_first_name(),
+				'last'    => $order->get_billing_last_name(),
+				'company' => $order->get_billing_company(),
+			) );
+			$country = $order->get_billing_country();
+			if ( $country ) {
+				$session_data['country'] = $country;
+			}
+		}
+
+		$session_data = apply_filters( 'wc_fastspring_session_data', $session_data, $order );
+
+		$session = $client->create_session( $session_data );
+
+		if ( is_wp_error( $session ) ) {
+			Plugin::log( 'Session creation failed: ' . $session->get_error_message(), 'error' );
+			wc_add_notice( __( 'Unable to initiate FastSpring checkout. Please try again.', 'woocommerce-fastspring-gateway' ), 'error' );
+			return array( 'result' => 'failure' );
+		}
+
+		if ( empty( $session['id'] ) ) {
+			Plugin::log( 'Session response missing id.', 'error' );
+			wc_add_notice( __( 'Invalid FastSpring checkout response. Please try again.', 'woocommerce-fastspring-gateway' ), 'error' );
+			return array( 'result' => 'failure' );
+		}
+
+		$order->update_meta_data( '_fs_session_id', sanitize_text_field( $session['id'] ) );
+		$order->save();
+
+		// Build checkout URL: https://{storefront}/session/{session_id}
+		$storefront   = Plugin::get_storefront_path();
+		$checkout_url = 'https://' . $storefront . '/session/' . rawurlencode( $session['id'] );
+
+		Plugin::log( sprintf( 'Session %s created for order #%d, redirecting to %s', $session['id'], $order_id, $checkout_url ) );
 
 		return array(
-			'result'  => 'success',
-			'session' => $payload,
+			'result'   => 'success',
+			'redirect' => $checkout_url,
 		);
 	}
 
@@ -253,18 +305,18 @@ class Gateway extends WC_Payment_Gateway {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Validate the access key field.
+	 * Validate the API username field.
 	 *
 	 * @param string      $key   Field key.
 	 * @param string|null $value Field value.
 	 * @return string Sanitized value.
 	 */
-	public function validate_access_key_field( string $key, ?string $value ): string {
+	public function validate_api_username_field( string $key, ?string $value ): string {
 		$value = $value ?? '';
 
 		if ( '' === $value ) {
 			\WC_Admin_Settings::add_error(
-				esc_html__( 'A FastSpring access key is required.', 'woocommerce-fastspring-gateway' )
+				esc_html__( 'FastSpring API username is required.', 'woocommerce-fastspring-gateway' )
 			);
 		}
 
@@ -272,35 +324,22 @@ class Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
-	 * Validate the RSA private key field.
+	 * Validate the API password field.
 	 *
 	 * @param string      $key   Field key.
 	 * @param string|null $value Field value.
-	 * @return string The private key PEM or empty string.
+	 * @return string Sanitized value.
 	 */
-	public function validate_private_key_field( string $key, ?string $value ): string {
+	public function validate_api_password_field( string $key, ?string $value ): string {
 		$value = $value ?? '';
 
-		if ( '' !== $value ) {
-			$pk = openssl_pkey_get_private( $value );
-
-			if ( false === $pk ) {
-				\WC_Admin_Settings::add_error(
-					esc_html__( 'The RSA private key is invalid or cannot be parsed.', 'woocommerce-fastspring-gateway' )
-				);
-				return '';
-			}
-
-			$details = openssl_pkey_get_details( $pk );
-
-			if ( $details && ( $details['bits'] ?? 0 ) < 2048 ) {
-				\WC_Admin_Settings::add_error(
-					esc_html__( 'The RSA key must be at least 2048 bits.', 'woocommerce-fastspring-gateway' )
-				);
-			}
+		if ( '' === $value ) {
+			\WC_Admin_Settings::add_error(
+				esc_html__( 'FastSpring API password is required.', 'woocommerce-fastspring-gateway' )
+			);
 		}
 
-		return $value;
+		return sanitize_text_field( $value );
 	}
 
 	/**
@@ -308,20 +347,21 @@ class Gateway extends WC_Payment_Gateway {
 	 *
 	 * @param string      $key   Field key.
 	 * @param string|null $value Field value.
-	 * @return string Sanitized storefront path.
+	 * @return string Sanitized storefront domain.
 	 */
 	public function validate_storefront_path_field( string $key, ?string $value ): string {
 		$value = $value ?? '';
 
 		if ( '' === $value ) {
 			\WC_Admin_Settings::add_error(
-				esc_html__( 'Enter a valid FastSpring storefront path.', 'woocommerce-fastspring-gateway' )
+				esc_html__( 'Enter your FastSpring storefront URL.', 'woocommerce-fastspring-gateway' )
 			);
 			return '';
 		}
 
-		// Strip protocol prefix and trailing slash.
+		// Strip protocol prefix, path, and trailing slash to keep only the domain.
 		$value = preg_replace( '#^https?://#', '', $value ) ?? $value;
+		$value = explode( '/', $value )[0];
 		return rtrim( sanitize_text_field( $value ), '/' );
 	}
 
@@ -386,17 +426,9 @@ class Gateway extends WC_Payment_Gateway {
 			'wc-fastspring-admin',
 			'wcFsAdminL10n',
 			array(
-				'required'         => __( 'Required', 'woocommerce-fastspring-gateway' ),
-				'recommended'      => __( 'Recommended', 'woocommerce-fastspring-gateway' ),
-				'copied'           => __( 'Copied!', 'woocommerce-fastspring-gateway' ),
-				'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
-				'generateNonce'    => wp_create_nonce( 'wc_fastspring_generate_keys' ),
-				'generateBtn'      => __( 'Generate Key Pair', 'woocommerce-fastspring-gateway' ),
-				'generating'       => __( 'Generating...', 'woocommerce-fastspring-gateway' ),
-				'downloadCert'     => __( 'Download Public Certificate', 'woocommerce-fastspring-gateway' ),
-				'generateSuccess'  => __( 'Keys generated! Download the certificate below and upload it to FastSpring.', 'woocommerce-fastspring-gateway' ),
-				'generateError'    => __( 'Key generation failed. Check that your server supports OpenSSL.', 'woocommerce-fastspring-gateway' ),
-				'confirmOverwrite' => __( 'This will replace your current private key. Continue?', 'woocommerce-fastspring-gateway' ),
+				'required'    => __( 'Required', 'woocommerce-fastspring-gateway' ),
+				'recommended' => __( 'Recommended', 'woocommerce-fastspring-gateway' ),
+				'copied'      => __( 'Copied!', 'woocommerce-fastspring-gateway' ),
 			)
 		);
 	}

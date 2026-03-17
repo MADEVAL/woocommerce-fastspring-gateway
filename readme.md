@@ -4,7 +4,7 @@ Accept credit card, PayPal, Amazon Pay and other payments on your WooCommerce st
 
 ## What it does
 
-This plugin connects your WooCommerce store to [FastSpring](https://fastspring.com) as a payment gateway. Customers pay through the FastSpring popup checkout right on your site, and orders are tracked and managed in WooCommerce as usual.
+This plugin connects your WooCommerce store to [FastSpring](https://fastspring.com) as a payment gateway. When a customer checks out, the plugin creates a FastSpring session via the API and redirects the customer to the FastSpring checkout page. After payment, FastSpring sends a webhook to update the WooCommerce order.
 
 Supports one-time purchases, subscriptions (via WooCommerce Subscriptions), and refunds through the FastSpring API.
 
@@ -13,33 +13,33 @@ Supports one-time purchases, subscriptions (via WooCommerce Subscriptions), and 
 - WordPress 6.4+
 - WooCommerce 8.0+
 - PHP 8.1+
-- OpenSSL extension
-- A FastSpring seller account
+- A FastSpring seller account with API credentials
 
 ## Features
 
-- FastSpring Store Builder Library v1.0.3
-- Secure encrypted payloads (AES-128-ECB + RSA 2048-bit)
+- FastSpring Sessions API integration (full-page checkout redirect)
+- REST API client: sessions, orders, accounts, products, subscriptions, refunds
 - HMAC SHA256 webhook signature verification (mandatory)
 - Optional webhook IP address filtering
-- REST API order verification and refund processing
+- WooCommerce product meta field for FastSpring product path mapping (SKU fallback)
 - WooCommerce Subscriptions support (renewals, trials, signup fees, lifecycle events)
 - HPOS (High-Performance Order Storage) compatible
 - Cart/Checkout Blocks compatibility declared
 - 12 webhook event handlers for order, return, and subscription events
 - Configurable payment method icons (Visa, Mastercard, PayPal, Amex, and more)
 - Test mode with automatic storefront domain switching
+- Interactive admin settings page with contextual help sidebar
 
 ## Installation
 
 1. Download the latest release and upload the `woocommerce-fastspring-gateway` folder to `/wp-content/plugins/`.
 2. Activate the plugin in WordPress.
 3. Go to **WooCommerce > Settings > Payments > FastSpring**.
-4. Enter your **Access Key** and **RSA Private Key** (from FastSpring Developer Tools > Store Builder Library).
-5. Enter your **Storefront Path** (e.g. `yourstore.onfastspring.com/popup-checkout`).
+4. Enter your **Storefront URL** (e.g. `yourstore.onfastspring.com`).
+5. Enter your **API Username** and **API Password** (from FastSpring Developer Tools > API Credentials).
 6. In the FastSpring Dashboard > Developer Tools > Webhooks, add the webhook URL shown in the plugin settings.
 7. Set the same **HMAC Webhook Secret** in both FastSpring and the plugin settings.
-8. Optionally enter API Username and Password for order verification and refund support.
+8. Edit your WooCommerce products and enter the **FastSpring Product Path** for each.
 
 ## Webhook events
 
@@ -63,10 +63,9 @@ The plugin handles the following FastSpring events:
 ## Security
 
 - All webhook requests are validated with HMAC SHA256 signatures. Requests without valid signatures are rejected.
-- Checkout payloads are encrypted with AES-128-ECB and the key is signed with RSA 2048-bit.
-- RSA private key is validated on save (minimum 2048-bit).
 - All inputs are sanitized with WordPress sanitization functions.
 - Timing-safe comparison (`hash_equals`) for signature verification.
+- API credentials stored in WooCommerce settings (wp_options), never exposed client-side.
 
 ## Development
 
@@ -76,18 +75,16 @@ The plugin uses PSR-4 autoloading under the `GlobusStudio\WooCommerceFastSpring`
 woocommerce-fastspring-gateway/
   woocommerce-fastspring-gateway.php   # Main plugin file, autoloader
   src/
-    Plugin.php            # Bootstrap, environment checks, settings
-    Gateway.php           # WC_Payment_Gateway implementation
-    PayloadBuilder.php    # Builds encrypted session payloads
+    Plugin.php            # Bootstrap, environment checks, product meta
+    Gateway.php           # WC_Payment_Gateway (Sessions API redirect)
     WebhookHandler.php    # Processes incoming FastSpring events
-    AjaxHandler.php       # Receipt AJAX after popup payment
     ApiClient.php         # FastSpring REST API client
-    Encryption.php        # AES + RSA encryption
     Constants.php         # Plugin constants
     Admin/
-      Settings.php        # Gateway settings field definitions
+      Settings.php        # Gateway settings field definitions + help sidebar
   assets/
-    js/checkout.js        # Frontend checkout logic
+    js/admin-settings.js  # Admin sidebar interactivity
+    css/admin-settings.css # Admin settings page styles
     img/                  # Payment method SVG icons
 ```
 

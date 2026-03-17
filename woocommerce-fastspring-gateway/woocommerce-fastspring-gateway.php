@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce FastSpring Gateway
  * Plugin URI:  https://globus.studio
  * Description: Accept credit card, PayPal, Amazon Pay and other payments via FastSpring.
- * Version:     1.3.0
+ * Version:     2.0.0
  * Author:      Yevhen Leonidov
  * Author URI:  https://leonidov.dev
  * Text Domain: woocommerce-fastspring-gateway

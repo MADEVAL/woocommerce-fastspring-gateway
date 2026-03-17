@@ -75,15 +75,12 @@ final class Plugin {
 		);
 
 		add_filter( 'woocommerce_payment_gateways', array( $this, 'register_gateway' ) );
-		add_filter( 'script_loader_tag', array( $this, 'modify_sbl_script_tag' ), 20, 2 );
 		add_filter( 'plugin_action_links_' . plugin_basename( WC_FASTSPRING_MAIN_FILE ), array( $this, 'add_action_links' ) );
-		add_filter( 'woocommerce_checkout_fields', array( $this, 'maybe_remove_billing_fields' ), 20 );
-		add_filter( 'woocommerce_endpoint_order-pay_title', array( $this, 'order_pay_title' ), 10, 2 );
+
+		add_action( 'woocommerce_product_options_general_product_data', array( $this, 'render_product_fastspring_field' ) );
+		add_action( 'woocommerce_process_product_meta', array( $this, 'save_product_meta' ) );
 
 		new WebhookHandler();
-		new AjaxHandler();
-
-		add_action( 'wp_ajax_wc_fastspring_generate_rsa_keys', array( $this, 'ajax_generate_rsa_keys' ) );
 	}
 
 	/**
@@ -98,39 +95,31 @@ final class Plugin {
 	}
 
 	/**
-	 * Add FastSpring SBL data attributes to the script tag.
-	 *
-	 * @param string $tag    HTML script tag.
-	 * @param string $handle Script handle.
-	 * @return string Modified script tag.
+	 * Render FastSpring Product Path field on the product edit screen.
 	 */
-	public function modify_sbl_script_tag( string $tag, string $handle ): string {
-		if ( 'fastspring-sbl' !== $handle ) {
-			return $tag;
+	public function render_product_fastspring_field(): void {
+		woocommerce_wp_text_input( array(
+			'id'          => '_fastspring_product_path',
+			'label'       => __( 'FastSpring Product Path', 'woocommerce-fastspring-gateway' ),
+			'description' => __( 'The product path from your FastSpring dashboard (e.g. "my-software"). Falls back to SKU if empty.', 'woocommerce-fastspring-gateway' ),
+			'desc_tip'    => true,
+		) );
+	}
+
+	/**
+	 * Save FastSpring Product Path meta.
+	 *
+	 * @param int $post_id Product post ID.
+	 */
+	public function save_product_meta( int $post_id ): void {
+		if ( ! isset( $_POST['_fastspring_product_path'] ) ) {
+			return;
 		}
 
-		// Remove WP-generated id to avoid duplicate; SBL requires id="fsc-api".
-		$tag = str_replace( ' id="fastspring-sbl-js"', '', $tag );
+		check_admin_referer( 'woocommerce-save-product', 'woocommerce-save-product-nonce' );
 
-		$storefront = esc_attr( self::get_storefront_path() );
-		$access_key = esc_attr( (string) self::get_setting( 'access_key' ) );
-		$is_debug   = defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG;
-
-		$attributes = sprintf(
-			'id="fsc-api" data-storefront="%s" data-access-key="%s" data-popup-closed="fastspringPopupCloseHandler" data-before-requests-callback="fastspringBeforeRequestHandler"',
-			$storefront,
-			$access_key
-		);
-
-		if ( $is_debug ) {
-			$is_test     = 'yes' === self::get_setting( 'testmode' );
-			$attributes .= sprintf(
-				' data-debug="true" data-data-callback="fastspringDataCallback" data-error-callback="fastspringErrorCallback" data-test="%s"',
-				$is_test ? 'yes' : 'no'
-			);
-		}
-
-		return str_replace( ' src', ' ' . $attributes . ' src', $tag );
+		$path = sanitize_text_field( wp_unslash( $_POST['_fastspring_product_path'] ) );
+		update_post_meta( $post_id, '_fastspring_product_path', $path );
 	}
 
 	/**
@@ -148,47 +137,7 @@ final class Plugin {
 		return array_merge( $plugin_links, $links );
 	}
 
-	/**
-	 * Remove billing address fields when FastSpring handles billing.
-	 *
-	 * @param array<string, array<string, mixed>> $fields Checkout fields.
-	 * @return array<string, array<string, mixed>>
-	 */
-	public function maybe_remove_billing_fields( array $fields ): array {
-		if ( 'yes' === self::get_setting( 'billing_address' ) ) {
-			$remove = array(
-				'billing_address_1',
-				'billing_address_2',
-				'billing_city',
-				'billing_postcode',
-				'billing_country',
-				'billing_state',
-				'billing_company',
-			);
-			foreach ( $remove as $field ) {
-				unset( $fields['billing'][ $field ] );
-			}
-		}
-		return $fields;
-	}
 
-	/**
-	 * Override the order-pay page title.
-	 *
-	 * @param string $title    Current title.
-	 * @param string $endpoint Endpoint name.
-	 * @return string
-	 */
-	public function order_pay_title( string $title, string $endpoint ): string {
-		$order_id = absint( get_query_var( 'order-pay' ) );
-		$order    = wc_get_order( $order_id );
-
-		if ( $order instanceof \WC_Order && Constants::PLUGIN_SLUG === $order->get_payment_method() ) {
-			return __( 'Enter Payment Info on Next Page', 'woocommerce-fastspring-gateway' );
-		}
-
-		return $title;
-	}
 
 	// -------------------------------------------------------------------------
 	// Environment checks
@@ -212,10 +161,10 @@ final class Plugin {
 			);
 		}
 
-		$access_key  = self::get_setting( 'access_key' );
-		$storefront  = self::get_setting( 'storefront_path' );
-		$private_key = self::get_setting( 'private_key' );
-		$missing     = empty( $access_key ) || empty( $storefront ) || empty( $private_key );
+		$api_username = self::get_setting( 'api_username' );
+		$api_password = self::get_setting( 'api_password' );
+		$storefront   = self::get_setting( 'storefront_path' );
+		$missing      = empty( $api_username ) || empty( $api_password ) || empty( $storefront );
 
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended
 		$page    = isset( $_GET['page'] ) ? sanitize_text_field( wp_unslash( $_GET['page'] ) ) : '';
@@ -289,54 +238,7 @@ final class Plugin {
 		return '';
 	}
 
-	// -------------------------------------------------------------------------
-	// RSA key generation
-	// -------------------------------------------------------------------------
 
-	/**
-	 * AJAX: generate an RSA 2048-bit key pair and self-signed X.509 certificate.
-	 */
-	public function ajax_generate_rsa_keys(): void {
-		check_ajax_referer( 'wc_fastspring_generate_keys', 'nonce' );
-
-		if ( ! current_user_can( 'manage_woocommerce' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'woocommerce-fastspring-gateway' ) ) );
-		}
-
-		if ( ! function_exists( 'openssl_pkey_new' ) ) {
-			wp_send_json_error( array( 'message' => __( 'The OpenSSL PHP extension is not available on your server. Contact your hosting provider.', 'woocommerce-fastspring-gateway' ) ) );
-		}
-
-		$private_key = openssl_pkey_new( array(
-			'private_key_bits' => 2048,
-			'private_key_type' => OPENSSL_KEYTYPE_RSA,
-		) );
-
-		if ( false === $private_key ) {
-			wp_send_json_error( array( 'message' => __( 'Failed to generate RSA key pair.', 'woocommerce-fastspring-gateway' ) ) );
-		}
-
-		$dn  = array( 'commonName' => wp_parse_url( home_url(), PHP_URL_HOST ) ?: 'localhost' );
-		$csr = openssl_csr_new( $dn, $private_key );
-
-		if ( false === $csr ) {
-			wp_send_json_error( array( 'message' => __( 'Failed to create certificate request.', 'woocommerce-fastspring-gateway' ) ) );
-		}
-
-		$cert = openssl_csr_sign( $csr, null, $private_key, 3650, array( 'digest_alg' => 'sha256' ) );
-
-		if ( false === $cert ) {
-			wp_send_json_error( array( 'message' => __( 'Failed to generate certificate.', 'woocommerce-fastspring-gateway' ) ) );
-		}
-
-		openssl_pkey_export( $private_key, $private_key_pem );
-		openssl_x509_export( $cert, $cert_pem );
-
-		wp_send_json_success( array(
-			'private_key'  => $private_key_pem,
-			'certificate'  => $cert_pem,
-		) );
-	}
 
 	// -------------------------------------------------------------------------
 	// Settings helpers

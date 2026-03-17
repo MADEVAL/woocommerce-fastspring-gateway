@@ -6,7 +6,7 @@ Tested up to: 6.7
 Requires PHP: 8.1
 WC requires at least: 8.0
 WC tested up to: 9.6
-Stable tag: 1.3.0
+Stable tag: 2.0.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,15 +14,16 @@ Accept credit card, PayPal, Amazon Pay and other payments on your WooCommerce st
 
 == Description ==
 
-WooCommerce FastSpring Gateway integrates your [FastSpring](https://fastspring.com) account with WooCommerce, enabling secure payments through the FastSpring popup checkout.
+WooCommerce FastSpring Gateway integrates your [FastSpring](https://fastspring.com) account with WooCommerce, enabling secure payments through the FastSpring Sessions API with a full-page checkout redirect.
 
 **Features:**
 
-* FastSpring Store Builder Library v1.0.3 (latest)
-* Secure encrypted payloads (AES-128-ECB + RSA 2048-bit)
+* FastSpring Sessions API integration (no Store Builder Library popup)
+* Full-page checkout redirect for a native FastSpring experience
+* REST API: sessions, orders, accounts, products, subscriptions, refunds
 * Mandatory HMAC SHA256 webhook signature verification
 * Optional webhook IP address filtering
-* REST API order verification and refund support
+* WooCommerce product meta field for FastSpring product path mapping (SKU fallback)
 * WooCommerce Subscriptions support with renewal and lifecycle events
 * WooCommerce HPOS (High-Performance Order Storage) compatible
 * Cart/Checkout Blocks compatibility declared
@@ -45,12 +46,12 @@ WooCommerce FastSpring Gateway integrates your [FastSpring](https://fastspring.c
 1. Upload the plugin folder to `/wp-content/plugins/`.
 2. Activate the plugin through the **Plugins** menu in WordPress.
 3. Go to **WooCommerce > Settings > Payments > FastSpring**.
-4. Enter your Access Key and RSA Private Key (from FastSpring Developer Tools > Store Builder Library).
-5. Enter your Storefront Path (e.g., `yourstore.onfastspring.com/popup-checkout`).
+4. Enter your Storefront URL (e.g., `yourstore.onfastspring.com`).
+5. Enter your API Username and Password (from FastSpring Developer Tools > API Credentials).
 6. Configure your Webhook URL in the FastSpring Dashboard > Developer Tools > Webhooks:
    `https://yoursite.com/?wc-api=wc_gateway_fastspring`
 7. Set the same HMAC Webhook Secret in both FastSpring and the plugin settings.
-8. (Optional) Enter API Username and Password for order verification and refund support.
+8. Edit your WooCommerce products and enter the FastSpring Product Path for each.
 
 == Frequently Asked Questions ==
 
@@ -68,13 +69,25 @@ Yes. When WooCommerce Subscriptions is active, subscription products are handled
 
 = Where do I find my FastSpring credentials? =
 
-Log in to your FastSpring Dashboard > Developer Tools. Access Key and Private Key are under Store Builder Library. API credentials are under API Credentials.
+Log in to your FastSpring Dashboard > Developer Tools > API Credentials. Create a new username and password (the password is shown only once).
 
 = Is webhook validation mandatory? =
 
 Yes. Unlike previous versions, HMAC SHA256 signature validation is always enforced. Webhook requests without a valid signature are rejected.
 
 == Changelog ==
+
+= 2.0.0 =
+* **Breaking:** Replaced Store Builder Library popup with FastSpring Sessions API redirect checkout.
+* Removed Access Key, RSA Private Key, and Encryption (no longer needed).
+* API Username and Password are now required (were optional).
+* Added FastSpring Product Path meta field to WooCommerce product editor.
+* Product SKU used as fallback when FastSpring path is not set.
+* Storefront URL simplified to domain only (e.g., yourstore.onfastspring.com).
+* Extended API client: create_session, create_account, update/pause/resume subscription, get_products, get_product.
+* Removed billing address toggle (FastSpring handles all billing).
+* Removed checkout.js, Encryption.php, PayloadBuilder.php, AjaxHandler.php.
+* Cleaned admin settings sidebar with updated help cards.
 
 = 1.3.0 =
 * One-click RSA key pair generation from the settings page (no terminal needed).
@@ -107,6 +120,9 @@ Yes. Unlike previous versions, HMAC SHA256 signature validation is always enforc
 * Settings cache with flush on save.
 
 == Upgrade Notice ==
+
+= 2.0.0 =
+Major update. The plugin now uses the FastSpring Sessions API instead of the Store Builder Library popup. You must enter API credentials and link your WooCommerce products to FastSpring product paths. Access Key and RSA Private Key settings are no longer used.
 
 = 1.3.0 =
 RSA key pair can now be generated directly from the settings page. No more terminal commands.

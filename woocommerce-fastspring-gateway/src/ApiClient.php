@@ -162,4 +162,85 @@ final class ApiClient {
 		$result = $this->request( 'DELETE', 'subscriptions/' . sanitize_text_field( $subscription_id ) );
 		return ! is_wp_error( $result );
 	}
+
+	/**
+	 * Update a FastSpring subscription.
+	 *
+	 * @param string               $subscription_id FastSpring subscription ID.
+	 * @param array<string, mixed> $data            Fields to update.
+	 * @return array<string, mixed>|null Updated subscription data or null.
+	 */
+	public function update_subscription( string $subscription_id, array $data ): ?array {
+		$data['subscriptions'] = array(
+			array_merge( array( 'subscription' => sanitize_text_field( $subscription_id ) ), $data ),
+		);
+		$result = $this->request( 'POST', 'subscriptions', $data );
+		return is_wp_error( $result ) ? null : $result;
+	}
+
+	/**
+	 * Pause a FastSpring subscription.
+	 *
+	 * @param string $subscription_id FastSpring subscription ID.
+	 * @return bool True on success.
+	 */
+	public function pause_subscription( string $subscription_id ): bool {
+		$result = $this->request( 'POST', 'subscriptions/pause', array(
+			'subscriptions' => array( sanitize_text_field( $subscription_id ) ),
+		) );
+		return ! is_wp_error( $result );
+	}
+
+	/**
+	 * Resume a FastSpring subscription.
+	 *
+	 * @param string $subscription_id FastSpring subscription ID.
+	 * @return bool True on success.
+	 */
+	public function resume_subscription( string $subscription_id ): bool {
+		$result = $this->request( 'POST', 'subscriptions/resume', array(
+			'subscriptions' => array( sanitize_text_field( $subscription_id ) ),
+		) );
+		return ! is_wp_error( $result );
+	}
+
+	/**
+	 * Create a checkout session.
+	 *
+	 * @param array<string, mixed> $data Session data (items, tags, contact, etc.).
+	 * @return array<string, mixed>|WP_Error Session response with id, account, etc.
+	 */
+	public function create_session( array $data ): array|WP_Error {
+		return $this->request( 'POST', 'sessions', $data );
+	}
+
+	/**
+	 * Create a customer account.
+	 *
+	 * @param array<string, mixed> $data Account data (contact, language, country).
+	 * @return array<string, mixed>|WP_Error Account response.
+	 */
+	public function create_account( array $data ): array|WP_Error {
+		return $this->request( 'POST', 'accounts', $data );
+	}
+
+	/**
+	 * List all product paths.
+	 *
+	 * @return array<string, mixed>|WP_Error Product list or error.
+	 */
+	public function get_products(): array|WP_Error {
+		return $this->request( 'GET', 'products' );
+	}
+
+	/**
+	 * Retrieve a single product.
+	 *
+	 * @param string $product_path FastSpring product path.
+	 * @return array<string, mixed>|null Product data or null.
+	 */
+	public function get_product( string $product_path ): ?array {
+		$result = $this->request( 'GET', 'products/' . sanitize_text_field( $product_path ) );
+		return is_wp_error( $result ) ? null : $result;
+	}
 }
