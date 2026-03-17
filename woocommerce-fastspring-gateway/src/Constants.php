@@ -11,7 +11,7 @@ namespace GlobusStudio\WooCommerceFastSpring;
 
 final class Constants {
 
-	public const VERSION         = '1.1.0';
+	public const VERSION         = '1.2.0';
 	public const SBL_SCRIPT_URL  = 'https://sbl.onfastspring.com/sbl/1.0.3/fastspring-builder.min.js';
 	public const API_BASE_URL    = 'https://api.fastspring.com';
 	public const MIN_PHP_VERSION = '8.1.0';

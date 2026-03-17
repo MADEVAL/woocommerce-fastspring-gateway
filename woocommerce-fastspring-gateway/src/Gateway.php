@@ -53,6 +53,7 @@ class Gateway extends WC_Payment_Gateway {
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ) );
 		add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( Plugin::class, 'flush_settings_cache' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
 	}
 
 	/**
@@ -322,5 +323,73 @@ class Gateway extends WC_Payment_Gateway {
 		// Strip protocol prefix and trailing slash.
 		$value = preg_replace( '#^https?://#', '', $value ) ?? $value;
 		return rtrim( sanitize_text_field( $value ), '/' );
+	}
+
+	// -------------------------------------------------------------------------
+	// Admin settings page
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Render the gateway settings page with a contextual help sidebar.
+	 */
+	public function admin_options(): void {
+		echo '<h2>' . esc_html( $this->get_method_title() );
+		wc_back_link( __( 'Return to payments', 'woocommerce' ), admin_url( 'admin.php?page=wc-settings&tab=checkout' ) );
+		echo '</h2>';
+		echo wp_kses_post( wpautop( $this->get_method_description() ) );
+
+		echo '<div class="wc-fs-settings-wrap">';
+		echo '<div class="wc-fs-settings-main">';
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- WC generates settings HTML.
+		echo '<table class="form-table">' . $this->generate_settings_html( $this->get_form_fields(), false ) . '</table>';
+		echo '</div>';
+		echo '<div class="wc-fs-settings-sidebar">';
+		Settings::render_help_sidebar();
+		echo '</div>';
+		echo '</div>';
+	}
+
+	/**
+	 * Enqueue admin CSS and JS on the gateway settings page.
+	 *
+	 * @param string $hook Current admin page hook.
+	 */
+	public function enqueue_admin_scripts( string $hook ): void {
+		if ( 'woocommerce_page_wc-settings' !== $hook ) {
+			return;
+		}
+
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended
+		$section = isset( $_GET['section'] ) ? sanitize_text_field( wp_unslash( $_GET['section'] ) ) : '';
+		// phpcs:enable
+
+		if ( Constants::PLUGIN_SLUG !== $section ) {
+			return;
+		}
+
+		wp_enqueue_style(
+			'wc-fastspring-admin',
+			plugins_url( 'assets/css/admin-settings.css', WC_FASTSPRING_MAIN_FILE ),
+			array(),
+			Constants::VERSION
+		);
+
+		wp_enqueue_script(
+			'wc-fastspring-admin',
+			plugins_url( 'assets/js/admin-settings.js', WC_FASTSPRING_MAIN_FILE ),
+			array( 'jquery' ),
+			Constants::VERSION,
+			true
+		);
+
+		wp_localize_script(
+			'wc-fastspring-admin',
+			'wcFsAdminL10n',
+			array(
+				'required'    => __( 'Required', 'woocommerce-fastspring-gateway' ),
+				'recommended' => __( 'Recommended', 'woocommerce-fastspring-gateway' ),
+				'copied'      => __( 'Copied!', 'woocommerce-fastspring-gateway' ),
+			)
+		);
 	}
 }

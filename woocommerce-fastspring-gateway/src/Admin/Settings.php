@@ -153,4 +153,324 @@ final class Settings {
 			)
 		);
 	}
+
+	/**
+	 * Render the contextual help sidebar for the settings page.
+	 */
+	public static function render_help_sidebar(): void {
+		$webhook_url = site_url( '?wc-api=wc_gateway_fastspring', 'https' );
+		$allowed     = array(
+			'a'      => array(
+				'href'   => array(),
+				'target' => array(),
+				'rel'    => array(),
+			),
+			'strong' => array(),
+			'code'   => array(),
+		);
+		?>
+		<div class="wc-fs-help-card wc-fs-help-card-overview" data-help-id="help-overview">
+			<h4><?php esc_html_e( 'Quick Setup Guide', 'woocommerce-fastspring-gateway' ); ?></h4>
+			<ol>
+				<li><?php esc_html_e( 'Enter your Storefront Path', 'woocommerce-fastspring-gateway' ); ?></li>
+				<li><?php esc_html_e( 'Paste the Access Key from Store Builder Library', 'woocommerce-fastspring-gateway' ); ?></li>
+				<li><?php esc_html_e( 'Generate an RSA key pair and paste the private key', 'woocommerce-fastspring-gateway' ); ?></li>
+				<li><?php esc_html_e( 'Set up the webhook URL and HMAC secret in FastSpring', 'woocommerce-fastspring-gateway' ); ?></li>
+				<li><?php esc_html_e( 'Add API credentials for order verification and refunds', 'woocommerce-fastspring-gateway' ); ?></li>
+			</ol>
+			<div class="wc-fs-webhook-url-box" data-url="<?php echo esc_attr( $webhook_url ); ?>">
+				<?php echo esc_html( $webhook_url ); ?>
+				<span class="wc-fs-copy-hint"><?php esc_html_e( 'Your webhook URL (click to copy)', 'woocommerce-fastspring-gateway' ); ?></span>
+			</div>
+		</div>
+
+		<div class="wc-fs-help-card wc-fs-help-card-required" data-help-id="help-storefront">
+			<h4>
+				<span class="wc-fs-badge wc-fs-badge-required"><?php esc_html_e( 'Required', 'woocommerce-fastspring-gateway' ); ?></span>
+				<?php esc_html_e( 'Storefront Path', 'woocommerce-fastspring-gateway' ); ?>
+			</h4>
+			<ol>
+				<li>
+					<?php
+					echo wp_kses(
+						sprintf(
+							/* translators: 1: opening link tag, 2: closing link tag */
+							__( 'Log in to %1$sapp.fastspring.com%2$s.', 'woocommerce-fastspring-gateway' ),
+							'<a href="https://app.fastspring.com" target="_blank" rel="noopener noreferrer">',
+							'</a>'
+						),
+						$allowed
+					);
+					?>
+				</li>
+				<li>
+					<?php
+					echo wp_kses(
+						__( 'Go to <strong>Storefronts</strong> and select (or create) a popup storefront.', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+				<li>
+					<?php
+					echo wp_kses(
+						__( 'Copy the full path, for example: <code>yourstore.onfastspring.com/popup-checkout</code>', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+				<li>
+					<?php
+					echo wp_kses(
+						__( 'The <code>https://</code> prefix is stripped automatically.', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+			</ol>
+			<p class="wc-fs-help-doc">
+				<span class="dashicons dashicons-book"></span>
+				<a href="https://developer.fastspring.com/reference/store-builder-library-overview" target="_blank" rel="noopener noreferrer">
+					<?php esc_html_e( 'Store Builder Library documentation', 'woocommerce-fastspring-gateway' ); ?>
+				</a>
+			</p>
+		</div>
+
+		<div class="wc-fs-help-card wc-fs-help-card-required" data-help-id="help-access-key">
+			<h4>
+				<span class="wc-fs-badge wc-fs-badge-required"><?php esc_html_e( 'Required', 'woocommerce-fastspring-gateway' ); ?></span>
+				<?php esc_html_e( 'Access Key', 'woocommerce-fastspring-gateway' ); ?>
+			</h4>
+			<ol>
+				<li>
+					<?php
+					echo wp_kses(
+						__( 'In the FastSpring App, go to <strong>Developer Tools</strong>.', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+				<li>
+					<?php
+					echo wp_kses(
+						__( 'Open the <strong>Store Builder Library</strong> section.', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+				<li>
+					<?php
+					echo wp_kses(
+						__( 'Copy the <strong>Access Key</strong> value and paste it here.', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+			</ol>
+			<p class="wc-fs-help-doc">
+				<span class="dashicons dashicons-book"></span>
+				<a href="https://developer.fastspring.com/reference/pass-a-secure-request" target="_blank" rel="noopener noreferrer">
+					<?php esc_html_e( 'Secure Payloads setup guide', 'woocommerce-fastspring-gateway' ); ?>
+				</a>
+			</p>
+		</div>
+
+		<div class="wc-fs-help-card wc-fs-help-card-required" data-help-id="help-private-key">
+			<h4>
+				<span class="wc-fs-badge wc-fs-badge-required"><?php esc_html_e( 'Required', 'woocommerce-fastspring-gateway' ); ?></span>
+				<?php esc_html_e( 'RSA Private Key', 'woocommerce-fastspring-gateway' ); ?>
+			</h4>
+			<ol>
+				<li><?php esc_html_e( 'Generate a 2048-bit RSA key pair:', 'woocommerce-fastspring-gateway' ); ?></li>
+				<li><code><?php echo esc_html( 'openssl genrsa -out privatekey.pem 2048' ); ?></code></li>
+				<li><?php esc_html_e( 'Create the public certificate:', 'woocommerce-fastspring-gateway' ); ?></li>
+				<li><code><?php echo esc_html( 'openssl req -new -x509 -key privatekey.pem -out publiccert.pem -days 3650' ); ?></code></li>
+				<li>
+					<?php
+					echo wp_kses(
+						__( 'Upload <code>publiccert.pem</code> to FastSpring: <strong>Developer Tools > Store Builder Library > File Upload</strong>.', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+				<li>
+					<?php
+					echo wp_kses(
+						__( 'Paste the contents of <code>privatekey.pem</code> into this field. Keep this file safe.', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+			</ol>
+			<p class="wc-fs-help-doc">
+				<span class="dashicons dashicons-book"></span>
+				<a href="https://developer.fastspring.com/reference/pass-a-secure-request" target="_blank" rel="noopener noreferrer">
+					<?php esc_html_e( 'Encryption setup guide', 'woocommerce-fastspring-gateway' ); ?>
+				</a>
+			</p>
+		</div>
+
+		<div class="wc-fs-help-card wc-fs-help-card-required" data-help-id="help-webhook">
+			<h4>
+				<span class="wc-fs-badge wc-fs-badge-required"><?php esc_html_e( 'Required', 'woocommerce-fastspring-gateway' ); ?></span>
+				<?php esc_html_e( 'Webhook Configuration', 'woocommerce-fastspring-gateway' ); ?>
+			</h4>
+			<ol>
+				<li>
+					<?php
+					echo wp_kses(
+						__( 'In the FastSpring App, go to <strong>Developer Tools > Webhooks</strong>.', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+				<li><?php esc_html_e( 'Add a new webhook endpoint using the URL shown above.', 'woocommerce-fastspring-gateway' ); ?></li>
+				<li>
+					<?php
+					echo wp_kses(
+						__( 'Set the <strong>HMAC SHA256 Secret</strong> to the same value as in Webhook Secret field below.', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+				<li>
+					<?php
+					echo wp_kses(
+						__( 'Select events: <code>order.completed</code>, <code>order.failed</code>, <code>order.canceled</code>, <code>return.created</code>, and subscription events you need.', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+				<li>
+					<?php
+					echo wp_kses(
+						__( 'HMAC signature validation is <strong>mandatory</strong>. Unsigned requests are rejected.', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+			</ol>
+			<p class="wc-fs-help-note">
+				<?php
+				echo wp_kses(
+					__( '<strong>IP Filter</strong> (optional): restricts incoming webhooks to the FastSpring server IP address for additional security.', 'woocommerce-fastspring-gateway' ),
+					$allowed
+				);
+				?>
+			</p>
+			<p class="wc-fs-help-doc">
+				<span class="dashicons dashicons-book"></span>
+				<a href="https://developer.fastspring.com/reference/message-security" target="_blank" rel="noopener noreferrer">
+					<?php esc_html_e( 'Webhook security documentation', 'woocommerce-fastspring-gateway' ); ?>
+				</a>
+			</p>
+		</div>
+
+		<div class="wc-fs-help-card wc-fs-help-card-recommended" data-help-id="help-api">
+			<h4>
+				<span class="wc-fs-badge wc-fs-badge-recommended"><?php esc_html_e( 'Recommended', 'woocommerce-fastspring-gateway' ); ?></span>
+				<?php esc_html_e( 'API Credentials', 'woocommerce-fastspring-gateway' ); ?>
+			</h4>
+			<ol>
+				<li>
+					<?php
+					echo wp_kses(
+						__( 'In the FastSpring App, go to <strong>Developer Tools > API Credentials</strong>.', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+				<li>
+					<?php
+					echo wp_kses(
+						__( 'Click <strong>Create</strong> to generate a new username and password.', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+				<li>
+					<?php
+					echo wp_kses(
+						__( '<strong>Important:</strong> the password is only shown once during creation. Save it immediately.', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+			</ol>
+			<p class="wc-fs-help-note">
+				<?php esc_html_e( 'API credentials enable order verification after checkout and refund processing from WooCommerce. Without them, the plugin relies only on webhooks for order confirmation.', 'woocommerce-fastspring-gateway' ); ?>
+			</p>
+			<p class="wc-fs-help-doc">
+				<span class="dashicons dashicons-book"></span>
+				<a href="https://developer.fastspring.com/reference/getting-started-with-your-api" target="_blank" rel="noopener noreferrer">
+					<?php esc_html_e( 'API overview documentation', 'woocommerce-fastspring-gateway' ); ?>
+				</a>
+			</p>
+		</div>
+
+		<div class="wc-fs-help-card wc-fs-help-card-optional" data-help-id="help-display">
+			<h4>
+				<span class="wc-fs-badge wc-fs-badge-optional"><?php esc_html_e( 'Optional', 'woocommerce-fastspring-gateway' ); ?></span>
+				<?php esc_html_e( 'Display & Checkout', 'woocommerce-fastspring-gateway' ); ?>
+			</h4>
+			<ul>
+				<li>
+					<?php
+					echo wp_kses(
+						__( '<strong>Title</strong> and <strong>Description</strong> appear on the checkout page when the customer selects this payment method.', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+				<li>
+					<?php
+					echo wp_kses(
+						__( '<strong>Payment Icons</strong> control which card and wallet logos appear next to the payment method name.', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+				<li>
+					<?php
+					echo wp_kses(
+						__( '<strong>Billing Address</strong>: FastSpring collects its own billing details. Enable this to remove duplicate address fields from the WooCommerce checkout form.', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+			</ul>
+		</div>
+
+		<div class="wc-fs-help-card wc-fs-help-card-optional" data-help-id="help-testing">
+			<h4>
+				<span class="wc-fs-badge wc-fs-badge-optional"><?php esc_html_e( 'Optional', 'woocommerce-fastspring-gateway' ); ?></span>
+				<?php esc_html_e( 'Testing & Debug', 'woocommerce-fastspring-gateway' ); ?>
+			</h4>
+			<ul>
+				<li>
+					<?php
+					echo wp_kses(
+						__( '<strong>Test Mode</strong> switches the storefront to <code>test.onfastspring.com</code> so you can place test orders without real charges.', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+				<li>
+					<?php
+					echo wp_kses(
+						__( '<strong>Logging</strong> writes debug messages to <strong>WooCommerce > Status > Logs</strong>. Enable when troubleshooting payment or webhook issues.', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+			</ul>
+			<p class="wc-fs-help-doc">
+				<span class="dashicons dashicons-book"></span>
+				<a href="https://developer.fastspring.com/docs/testing-overview" target="_blank" rel="noopener noreferrer">
+					<?php esc_html_e( 'Testing overview', 'woocommerce-fastspring-gateway' ); ?>
+				</a>
+			</p>
+		</div>
+		<?php
+	}
 }

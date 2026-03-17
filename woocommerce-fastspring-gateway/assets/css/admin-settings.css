@@ -1,0 +1,282 @@
+/**
+ * WooCommerce FastSpring Gateway: admin settings page.
+ *
+ * @package GlobusStudio\WooCommerceFastSpring
+ */
+
+/* Two-column layout */
+.wc-fs-settings-wrap {
+	display: flex;
+	gap: 24px;
+	align-items: flex-start;
+}
+
+.wc-fs-settings-main {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.wc-fs-settings-sidebar {
+	flex: 0 0 380px;
+	position: sticky;
+	top: 32px;
+	max-height: calc(100vh - 64px);
+	overflow-y: auto;
+	padding-bottom: 20px;
+}
+
+@media screen and (max-width: 1280px) {
+	.wc-fs-settings-wrap {
+		flex-direction: column;
+	}
+
+	.wc-fs-settings-sidebar {
+		flex: none;
+		width: 100%;
+		position: static;
+		max-height: none;
+	}
+}
+
+/* Help cards */
+.wc-fs-help-card {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-left: 3px solid #c3c4c7;
+	border-radius: 0 4px 4px 0;
+	padding: 14px 16px;
+	margin-bottom: 12px;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.wc-fs-help-card.is-active {
+	border-color: #2271b1;
+	border-left-color: #2271b1;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.wc-fs-help-card-required {
+	border-left-color: #d63638;
+}
+
+.wc-fs-help-card-required.is-active {
+	border-left-color: #d63638;
+}
+
+.wc-fs-help-card-recommended {
+	border-left-color: #2271b1;
+}
+
+.wc-fs-help-card-optional {
+	border-left-color: #a7aaad;
+}
+
+.wc-fs-help-card h4 {
+	margin: 0 0 8px;
+	padding: 0;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.4;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.wc-fs-help-card ol,
+.wc-fs-help-card ul {
+	margin: 6px 0 10px 16px;
+	padding: 0;
+}
+
+.wc-fs-help-card li {
+	margin-bottom: 5px;
+	font-size: 12.5px;
+	line-height: 1.5;
+	color: #50575e;
+}
+
+.wc-fs-help-card code {
+	background: #f0f0f1;
+	padding: 1px 5px;
+	border-radius: 3px;
+	font-size: 11.5px;
+	word-break: break-all;
+}
+
+/* Help note */
+.wc-fs-help-note {
+	margin: 8px 0 0;
+	padding: 8px 10px;
+	background: #f6f7f7;
+	border-radius: 3px;
+	font-size: 12px;
+	line-height: 1.5;
+	color: #50575e;
+}
+
+/* Help doc link */
+.wc-fs-help-doc {
+	margin: 10px 0 0;
+	padding-top: 8px;
+	border-top: 1px solid #f0f0f1;
+	font-size: 12.5px;
+}
+
+.wc-fs-help-doc a {
+	text-decoration: none;
+	color: #2271b1;
+}
+
+.wc-fs-help-doc a:hover {
+	color: #135e96;
+	text-decoration: underline;
+}
+
+.wc-fs-help-doc .dashicons {
+	font-size: 14px;
+	width: 14px;
+	height: 14px;
+	vertical-align: text-bottom;
+	margin-right: 2px;
+}
+
+/* Badges */
+.wc-fs-badge {
+	display: inline-block;
+	padding: 1px 7px;
+	border-radius: 3px;
+	font-size: 10px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
+	line-height: 16px;
+	vertical-align: middle;
+	flex-shrink: 0;
+}
+
+.wc-fs-badge-required {
+	background: #fcf0f1;
+	color: #d63638;
+	border: 1px solid #f0c5c5;
+}
+
+.wc-fs-badge-recommended {
+	background: #f0f6fc;
+	color: #2271b1;
+	border: 1px solid #c5d9ed;
+}
+
+.wc-fs-badge-optional {
+	background: #f0f0f1;
+	color: #646970;
+	border: 1px solid #dcdcde;
+}
+
+/* Webhook URL box */
+.wc-fs-webhook-url-box {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 10px 12px;
+	margin: 10px 0 4px;
+	word-break: break-all;
+	font-family: Consolas, Monaco, monospace;
+	font-size: 11.5px;
+	color: #2c3338;
+	cursor: pointer;
+	transition: border-color 0.15s;
+}
+
+.wc-fs-webhook-url-box:hover {
+	border-color: #2271b1;
+	background: #f0f6fc;
+}
+
+.wc-fs-copy-hint {
+	display: block;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	font-size: 11px;
+	color: #646970;
+	margin-top: 4px;
+}
+
+/* Overview card */
+.wc-fs-help-card-overview {
+	background: #f0f6fc;
+	border-color: #c5d9ed;
+	border-left-color: #2271b1;
+}
+
+.wc-fs-help-card-overview h4 {
+	color: #1d2327;
+	font-size: 13px;
+}
+
+.wc-fs-help-card-overview ol {
+	counter-reset: setup-step;
+	list-style: none;
+	margin-left: 0;
+	padding: 0;
+}
+
+.wc-fs-help-card-overview ol li {
+	counter-increment: setup-step;
+	padding-left: 26px;
+	position: relative;
+	margin-bottom: 7px;
+}
+
+.wc-fs-help-card-overview ol li::before {
+	content: counter(setup-step);
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 18px;
+	height: 18px;
+	background: #2271b1;
+	color: #fff;
+	border-radius: 50%;
+	text-align: center;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 18px;
+}
+
+/* Field label badges (injected by JS) */
+.wc-fs-field-badge {
+	display: inline-block;
+	padding: 0 5px;
+	border-radius: 3px;
+	font-size: 9px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
+	line-height: 15px;
+	margin-left: 5px;
+	vertical-align: middle;
+}
+
+.wc-fs-field-badge-required {
+	background: #fcf0f1;
+	color: #d63638;
+}
+
+.wc-fs-field-badge-recommended {
+	background: #f0f6fc;
+	color: #2271b1;
+}
+
+/* Sidebar scrollbar */
+.wc-fs-settings-sidebar::-webkit-scrollbar {
+	width: 5px;
+}
+
+.wc-fs-settings-sidebar::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.wc-fs-settings-sidebar::-webkit-scrollbar-thumb {
+	background: #c3c4c7;
+	border-radius: 3px;
+}

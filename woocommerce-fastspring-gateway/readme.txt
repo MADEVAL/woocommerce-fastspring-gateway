@@ -6,7 +6,7 @@ Tested up to: 6.7
 Requires PHP: 8.1
 WC requires at least: 8.0
 WC tested up to: 9.6
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,14 @@ Yes. Unlike previous versions, HMAC SHA256 signature validation is always enforc
 
 == Changelog ==
 
+= 1.2.0 =
+* Settings page redesign: two-column layout with contextual help sidebar.
+* Each setting now has a detailed guide with step-by-step instructions and links to FastSpring documentation.
+* Required, Recommended and Optional badges on settings fields.
+* Copyable webhook URL in the sidebar.
+* Interactive field-to-card highlighting when editing settings.
+* Added Requires Plugins header for WooCommerce dependency.
+
 = 1.1.0 =
 * Complete rewrite for modern PHP 8.1+, WordPress 6.4+, WooCommerce 8.0+.
 * Namespace: GlobusStudio\WooCommerceFastSpring with PSR-4 autoloading.
@@ -94,6 +102,9 @@ Yes. Unlike previous versions, HMAC SHA256 signature validation is always enforc
 * Settings cache with flush on save.
 
 == Upgrade Notice ==
+
+= 1.2.0 =
+Settings page now includes an interactive help sidebar with setup instructions for each field.
 
 = 1.1.0 =
 Complete rewrite. Review your FastSpring credentials and webhook secret in WooCommerce > Settings > Payments > FastSpring after upgrading. HMAC webhook validation is now mandatory.
