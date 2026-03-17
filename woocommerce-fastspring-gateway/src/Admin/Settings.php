@@ -191,7 +191,15 @@ final class Settings {
 				<li>
 					<?php
 					echo wp_kses(
-						__( 'Your storefront URL is visible in any product or storefront link. It follows the format: <code>yourstore.onfastspring.com</code>', 'woocommerce-fastspring-gateway' ),
+						__( 'Go to <strong>Dashboards > Welcome > Explore Storefronts</strong> and create a <strong>Web Storefront</strong> (redirect checkout). Other types (Popup, Embedded, Store Builder Library) are not supported by this plugin.', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+				<li>
+					<?php
+					echo wp_kses(
+						__( 'Your storefront URL follows the format: <code>yourstore.onfastspring.com</code>', 'woocommerce-fastspring-gateway' ),
 						$allowed
 					);
 					?>
