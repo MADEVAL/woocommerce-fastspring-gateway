@@ -1,5 +1,5 @@
 /**
- * WooCommerce FastSpring Gateway — Checkout frontend logic.
+ * WooCommerce FastSpring Gateway: checkout frontend logic.
  *
  * Intercepts WC checkout form submission, builds the FastSpring popup session,
  * and handles post-payment receipt flow.
@@ -139,7 +139,7 @@
 	}
 
 	/**
-	 * Full checkout flow: create WC order → launch FS popup.
+	 * Full checkout flow: create WC order, then launch FS popup.
 	 */
 	function doSubmit() {
 		setLoading(true);
@@ -157,7 +157,7 @@
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Called before FastSpring sends requests — hide the loading overlay.
+	 * Called before FastSpring sends requests. Hides the loading overlay.
 	 */
 	window.fastspringBeforeRequestHandler = function () {
 		setLoading(false);
@@ -185,7 +185,7 @@
 	};
 
 	/**
-	 * Debug callback — logs SBL data events to the console.
+	 * Debug callback: logs SBL data events to the console.
 	 *
 	 * @param {Object} data SBL data object.
 	 */
@@ -196,7 +196,7 @@
 	};
 
 	/**
-	 * Debug callback — logs SBL errors to the console.
+	 * Debug callback: logs SBL errors to the console.
 	 *
 	 * @param {string} code    Error code.
 	 * @param {string} message Error message.

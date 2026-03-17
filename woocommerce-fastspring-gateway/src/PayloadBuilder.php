@@ -252,7 +252,7 @@ final class PayloadBuilder {
 			),
 			'display'   => array(
 				/* translators: %s: product name */
-				'en' => sprintf( __( '%s — Signup Fee', 'woocommerce-fastspring-gateway' ), $product->get_name() ),
+				'en' => sprintf( __( '%s - Signup Fee', 'woocommerce-fastspring-gateway' ), $product->get_name() ),
 			),
 			'removable' => false,
 		);

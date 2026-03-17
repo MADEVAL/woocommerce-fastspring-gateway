@@ -1,5 +1,5 @@
 ﻿=== WooCommerce FastSpring Gateway ===
-Contributors: yevhenleonidov
+Contributors: globusstudio
 Tags: woocommerce, payment gateway, fastspring, subscriptions, digital payments
 Requires at least: 6.4
 Tested up to: 6.7
@@ -19,7 +19,7 @@ WooCommerce FastSpring Gateway integrates your [FastSpring](https://fastspring.c
 **Features:**
 
 * FastSpring Store Builder Library v1.0.3 (latest)
-* Secure encrypted payloads — AES-128-ECB + RSA 2048-bit
+* Secure encrypted payloads (AES-128-ECB + RSA 2048-bit)
 * Mandatory HMAC SHA256 webhook signature verification
 * Optional webhook IP address filtering
 * REST API order verification and refund support
@@ -27,7 +27,7 @@ WooCommerce FastSpring Gateway integrates your [FastSpring](https://fastspring.c
 * WooCommerce HPOS (High-Performance Order Storage) compatible
 * Cart/Checkout Blocks compatibility declared
 * PHP 8.1+ with strict type declarations throughout
-* PSR-4 autoloading — clean, modern architecture
+* PSR-4 autoloading, clean and modern architecture
 * 12 webhook event handlers (order, return, subscription lifecycle & charges)
 * Configurable payment method icons
 * Test mode with automatic storefront domain switching
@@ -44,10 +44,10 @@ WooCommerce FastSpring Gateway integrates your [FastSpring](https://fastspring.c
 
 1. Upload the plugin folder to `/wp-content/plugins/`.
 2. Activate the plugin through the **Plugins** menu in WordPress.
-3. Go to **WooCommerce → Settings → Payments → FastSpring**.
-4. Enter your Access Key and RSA Private Key (from FastSpring Developer Tools → Store Builder Library).
+3. Go to **WooCommerce > Settings > Payments > FastSpring**.
+4. Enter your Access Key and RSA Private Key (from FastSpring Developer Tools > Store Builder Library).
 5. Enter your Storefront Path (e.g., `yourstore.onfastspring.com/popup-checkout`).
-6. Configure your Webhook URL in the FastSpring Dashboard → Developer Tools → Webhooks:
+6. Configure your Webhook URL in the FastSpring Dashboard > Developer Tools > Webhooks:
    `https://yoursite.com/?wc-api=wc_gateway_fastspring`
 7. Set the same HMAC Webhook Secret in both FastSpring and the plugin settings.
 8. (Optional) Enter API Username and Password for order verification and refund support.
@@ -68,7 +68,7 @@ Yes. When WooCommerce Subscriptions is active, subscription products are handled
 
 = Where do I find my FastSpring credentials? =
 
-Log in to your FastSpring Dashboard → Developer Tools. Access Key and Private Key are under Store Builder Library. API credentials are under API Credentials.
+Log in to your FastSpring Dashboard > Developer Tools. Access Key and Private Key are under Store Builder Library. API credentials are under API Credentials.
 
 = Is webhook validation mandatory? =
 
@@ -96,4 +96,4 @@ Yes. Unlike previous versions, HMAC SHA256 signature validation is always enforc
 == Upgrade Notice ==
 
 = 1.1.0 =
-Complete rewrite. Review your FastSpring credentials and webhook secret in WooCommerce → Settings → Payments → FastSpring after upgrading. HMAC webhook validation is now mandatory.
+Complete rewrite. Review your FastSpring credentials and webhook secret in WooCommerce > Settings > Payments > FastSpring after upgrading. HMAC webhook validation is now mandatory.

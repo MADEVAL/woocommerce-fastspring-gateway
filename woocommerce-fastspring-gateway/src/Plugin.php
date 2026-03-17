@@ -107,7 +107,7 @@ final class Plugin {
 			return $tag;
 		}
 
-		// Remove WP-generated id to avoid duplicate — SBL requires id="fsc-api".
+		// Remove WP-generated id to avoid duplicate; SBL requires id="fsc-api".
 		$tag = str_replace( ' id="fastspring-sbl-js"', '', $tag );
 
 		$storefront = esc_attr( self::get_storefront_path() );

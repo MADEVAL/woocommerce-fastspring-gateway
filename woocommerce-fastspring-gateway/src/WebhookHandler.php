@@ -89,17 +89,17 @@ final class WebhookHandler {
 		$secret = Plugin::get_setting( 'webhook_secret' );
 
 		if ( ! is_string( $secret ) || '' === $secret ) {
-			Plugin::log( 'Webhook: no webhook secret configured — rejecting.', 'error' );
+			Plugin::log( 'Webhook: no webhook secret configured, rejecting.', 'error' );
 			return false;
 		}
 
-		// Do not sanitize — base64 signature must be compared byte-for-byte.
+		// Do not sanitize: base64 signature must be compared byte-for-byte.
 		$signature = isset( $_SERVER['HTTP_X_FS_SIGNATURE'] )
 			? trim( (string) wp_unslash( $_SERVER['HTTP_X_FS_SIGNATURE'] ) )
 			: '';
 
 		if ( '' === $signature ) {
-			Plugin::log( 'Webhook: missing X-FS-Signature header — rejecting.', 'error' );
+			Plugin::log( 'Webhook: missing X-FS-Signature header, rejecting.', 'error' );
 			return false;
 		}
 
@@ -132,7 +132,7 @@ final class WebhookHandler {
 			};
 		} catch ( \Throwable $e ) {
 			Plugin::log(
-				sprintf( 'Webhook: error handling "%s" — %s', $event->type, $e->getMessage() ),
+				sprintf( 'Webhook: error handling "%s": %s', $event->type, $e->getMessage() ),
 				'error'
 			);
 		}
@@ -160,7 +160,7 @@ final class WebhookHandler {
 		}
 
 		if ( Constants::PLUGIN_SLUG !== $order->get_payment_method() ) {
-			Plugin::log( sprintf( 'Webhook: order #%s uses a different payment method — ignoring.', (string) $order_id ), 'warning' );
+			Plugin::log( sprintf( 'Webhook: order #%s uses a different payment method, ignoring.', (string) $order_id ), 'warning' );
 			return null;
 		}
 
@@ -180,7 +180,7 @@ final class WebhookHandler {
 		$reference = sanitize_text_field( $event->data->reference ?? '' );
 
 		if ( $order->is_paid() ) {
-			Plugin::log( sprintf( 'Webhook: order #%d already paid — skipping.', $order->get_id() ) );
+			Plugin::log( sprintf( 'Webhook: order #%d already paid, skipping.', $order->get_id() ) );
 			return;
 		}
 

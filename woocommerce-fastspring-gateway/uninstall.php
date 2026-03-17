@@ -1,6 +1,6 @@
 <?php
 /**
- * Uninstall — clean up plugin options.
+ * Uninstall: removes plugin options on deletion.
  *
  * @package GlobusStudio\WooCommerceFastSpring
  */

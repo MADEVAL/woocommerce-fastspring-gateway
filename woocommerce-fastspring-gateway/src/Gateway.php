@@ -16,7 +16,7 @@ use WC_Payment_Gateway;
 class Gateway extends WC_Payment_Gateway {
 
 	/**
-	 * Constructor — register gateway properties and hooks.
+	 * Constructor: registers gateway properties and hooks.
 	 */
 	public function __construct() {
 		$this->id                 = Constants::PLUGIN_SLUG;
@@ -89,7 +89,7 @@ class Gateway extends WC_Payment_Gateway {
 			'fastspring-sbl',
 			Constants::SBL_SCRIPT_URL,
 			array(),
-			null, // External script — version managed by FastSpring.
+			null, // External script, version managed by FastSpring.
 			true
 		);
 
@@ -166,7 +166,7 @@ class Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
-	 * Process the payment — build the FastSpring session payload.
+	 * Process the payment and build the FastSpring session payload.
 	 *
 	 * Unlike a typical gateway that returns a redirect URL, this returns
 	 * a "session" with encrypted payload data. The frontend JS intercepts
@@ -200,7 +200,7 @@ class Gateway extends WC_Payment_Gateway {
 	 * Process a refund via FastSpring API.
 	 *
 	 * @param int        $order_id Order ID.
-	 * @param float|null $amount   Refund amount (unused — FS processes full returns).
+	 * @param float|null $amount   Refund amount.
 	 * @param string     $reason   Refund reason.
 	 * @return bool|\WP_Error
 	 */

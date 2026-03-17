@@ -79,7 +79,7 @@ final class Encryption {
 	 */
 	public static function build_secure_data( string $json, string $private_key_pem, bool $is_test_mode ): array {
 		if ( $is_test_mode ) {
-			// Per FS docs: secure(nonEncryptedJSON, "") — pass JSON string, not decoded.
+			// Per FS docs: secure(nonEncryptedJSON, "") - pass JSON string, not decoded.
 			return array(
 				'payload' => $json,
 				'key'     => '',
