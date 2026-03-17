@@ -82,6 +82,8 @@ final class Plugin {
 
 		new WebhookHandler();
 		new AjaxHandler();
+
+		add_action( 'wp_ajax_wc_fastspring_generate_rsa_keys', array( $this, 'ajax_generate_rsa_keys' ) );
 	}
 
 	/**
@@ -285,6 +287,55 @@ final class Plugin {
 		}
 
 		return '';
+	}
+
+	// -------------------------------------------------------------------------
+	// RSA key generation
+	// -------------------------------------------------------------------------
+
+	/**
+	 * AJAX: generate an RSA 2048-bit key pair and self-signed X.509 certificate.
+	 */
+	public function ajax_generate_rsa_keys(): void {
+		check_ajax_referer( 'wc_fastspring_generate_keys', 'nonce' );
+
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'woocommerce-fastspring-gateway' ) ) );
+		}
+
+		if ( ! function_exists( 'openssl_pkey_new' ) ) {
+			wp_send_json_error( array( 'message' => __( 'The OpenSSL PHP extension is not available on your server. Contact your hosting provider.', 'woocommerce-fastspring-gateway' ) ) );
+		}
+
+		$private_key = openssl_pkey_new( array(
+			'private_key_bits' => 2048,
+			'private_key_type' => OPENSSL_KEYTYPE_RSA,
+		) );
+
+		if ( false === $private_key ) {
+			wp_send_json_error( array( 'message' => __( 'Failed to generate RSA key pair.', 'woocommerce-fastspring-gateway' ) ) );
+		}
+
+		$dn  = array( 'commonName' => wp_parse_url( home_url(), PHP_URL_HOST ) ?: 'localhost' );
+		$csr = openssl_csr_new( $dn, $private_key );
+
+		if ( false === $csr ) {
+			wp_send_json_error( array( 'message' => __( 'Failed to create certificate request.', 'woocommerce-fastspring-gateway' ) ) );
+		}
+
+		$cert = openssl_csr_sign( $csr, null, $private_key, 3650, array( 'digest_alg' => 'sha256' ) );
+
+		if ( false === $cert ) {
+			wp_send_json_error( array( 'message' => __( 'Failed to generate certificate.', 'woocommerce-fastspring-gateway' ) ) );
+		}
+
+		openssl_pkey_export( $private_key, $private_key_pem );
+		openssl_x509_export( $cert, $cert_pem );
+
+		wp_send_json_success( array(
+			'private_key'  => $private_key_pem,
+			'certificate'  => $cert_pem,
+		) );
 	}
 
 	// -------------------------------------------------------------------------

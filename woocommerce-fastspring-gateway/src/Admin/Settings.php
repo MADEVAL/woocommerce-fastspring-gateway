@@ -174,7 +174,7 @@ final class Settings {
 			<ol>
 				<li><?php esc_html_e( 'Enter your Storefront Path', 'woocommerce-fastspring-gateway' ); ?></li>
 				<li><?php esc_html_e( 'Paste the Access Key from Store Builder Library', 'woocommerce-fastspring-gateway' ); ?></li>
-				<li><?php esc_html_e( 'Generate an RSA key pair and paste the private key', 'woocommerce-fastspring-gateway' ); ?></li>
+				<li><?php esc_html_e( 'Click Generate Key Pair, download the certificate, upload it to FastSpring', 'woocommerce-fastspring-gateway' ); ?></li>
 				<li><?php esc_html_e( 'Set up the webhook URL and HMAC secret in FastSpring', 'woocommerce-fastspring-gateway' ); ?></li>
 				<li><?php esc_html_e( 'Add API credentials for order verification and refunds', 'woocommerce-fastspring-gateway' ); ?></li>
 			</ol>
@@ -281,14 +281,10 @@ final class Settings {
 				<?php esc_html_e( 'RSA Private Key', 'woocommerce-fastspring-gateway' ); ?>
 			</h4>
 			<ol>
-				<li><?php esc_html_e( 'Generate a 2048-bit RSA key pair:', 'woocommerce-fastspring-gateway' ); ?></li>
-				<li><code><?php echo esc_html( 'openssl genrsa -out privatekey.pem 2048' ); ?></code></li>
-				<li><?php esc_html_e( 'Create the public certificate:', 'woocommerce-fastspring-gateway' ); ?></li>
-				<li><code><?php echo esc_html( 'openssl req -new -x509 -key privatekey.pem -out publiccert.pem -days 3650' ); ?></code></li>
 				<li>
 					<?php
 					echo wp_kses(
-						__( 'Upload <code>publiccert.pem</code> to FastSpring: <strong>Developer Tools > Store Builder Library > File Upload</strong>.', 'woocommerce-fastspring-gateway' ),
+						__( 'Click the <strong>Generate Key Pair</strong> button below the Private Key field. The plugin creates the key pair automatically.', 'woocommerce-fastspring-gateway' ),
 						$allowed
 					);
 					?>
@@ -296,7 +292,23 @@ final class Settings {
 				<li>
 					<?php
 					echo wp_kses(
-						__( 'Paste the contents of <code>privatekey.pem</code> into this field. Keep this file safe.', 'woocommerce-fastspring-gateway' ),
+						__( 'The private key fills in automatically. Click <strong>Download Public Certificate</strong> to save the <code>.pem</code> file.', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+				<li>
+					<?php
+					echo wp_kses(
+						__( 'In the FastSpring App, go to <strong>Developer Tools > Store Builder Library</strong> and upload the downloaded certificate.', 'woocommerce-fastspring-gateway' ),
+						$allowed
+					);
+					?>
+				</li>
+				<li>
+					<?php
+					echo wp_kses(
+						__( 'Save these settings. That is it!', 'woocommerce-fastspring-gateway' ),
 						$allowed
 					);
 					?>

@@ -280,3 +280,69 @@
 	background: #c3c4c7;
 	border-radius: 3px;
 }
+
+/* RSA Key Generator */
+.wc-fs-keygen-wrap {
+	margin-top: 8px;
+}
+
+.wc-fs-generate-keys-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.wc-fs-generate-keys-btn .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	line-height: 16px;
+}
+
+.wc-fs-keygen-status {
+	margin-top: 8px;
+}
+
+.wc-fs-keygen-success {
+	color: #00a32a;
+	font-size: 13px;
+	margin-bottom: 8px;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.wc-fs-keygen-success .dashicons {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+	color: #00a32a;
+}
+
+.wc-fs-keygen-error {
+	color: #d63638;
+	font-size: 13px;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.wc-fs-keygen-error .dashicons {
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+	color: #d63638;
+}
+
+.wc-fs-download-cert-btn {
+	display: inline-flex !important;
+	align-items: center;
+	gap: 4px;
+}
+
+.wc-fs-download-cert-btn .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	line-height: 16px;
+}

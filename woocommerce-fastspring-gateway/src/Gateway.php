@@ -386,9 +386,17 @@ class Gateway extends WC_Payment_Gateway {
 			'wc-fastspring-admin',
 			'wcFsAdminL10n',
 			array(
-				'required'    => __( 'Required', 'woocommerce-fastspring-gateway' ),
-				'recommended' => __( 'Recommended', 'woocommerce-fastspring-gateway' ),
-				'copied'      => __( 'Copied!', 'woocommerce-fastspring-gateway' ),
+				'required'         => __( 'Required', 'woocommerce-fastspring-gateway' ),
+				'recommended'      => __( 'Recommended', 'woocommerce-fastspring-gateway' ),
+				'copied'           => __( 'Copied!', 'woocommerce-fastspring-gateway' ),
+				'ajaxUrl'          => admin_url( 'admin-ajax.php' ),
+				'generateNonce'    => wp_create_nonce( 'wc_fastspring_generate_keys' ),
+				'generateBtn'      => __( 'Generate Key Pair', 'woocommerce-fastspring-gateway' ),
+				'generating'       => __( 'Generating...', 'woocommerce-fastspring-gateway' ),
+				'downloadCert'     => __( 'Download Public Certificate', 'woocommerce-fastspring-gateway' ),
+				'generateSuccess'  => __( 'Keys generated! Download the certificate below and upload it to FastSpring.', 'woocommerce-fastspring-gateway' ),
+				'generateError'    => __( 'Key generation failed. Check that your server supports OpenSSL.', 'woocommerce-fastspring-gateway' ),
+				'confirmOverwrite' => __( 'This will replace your current private key. Continue?', 'woocommerce-fastspring-gateway' ),
 			)
 		);
 	}

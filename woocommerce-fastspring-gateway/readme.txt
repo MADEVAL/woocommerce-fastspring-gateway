@@ -6,7 +6,7 @@ Tested up to: 6.7
 Requires PHP: 8.1
 WC requires at least: 8.0
 WC tested up to: 9.6
-Stable tag: 1.2.0
+Stable tag: 1.3.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,11 @@ Yes. Unlike previous versions, HMAC SHA256 signature validation is always enforc
 
 == Changelog ==
 
+= 1.3.0 =
+* One-click RSA key pair generation from the settings page (no terminal needed).
+* Public certificate download button for uploading to FastSpring.
+* Updated sidebar help card with simplified key setup instructions.
+
 = 1.2.0 =
 * Settings page redesign: two-column layout with contextual help sidebar.
 * Each setting now has a detailed guide with step-by-step instructions and links to FastSpring documentation.
@@ -102,6 +107,9 @@ Yes. Unlike previous versions, HMAC SHA256 signature validation is always enforc
 * Settings cache with flush on save.
 
 == Upgrade Notice ==
+
+= 1.3.0 =
+RSA key pair can now be generated directly from the settings page. No more terminal commands.
 
 = 1.2.0 =
 Settings page now includes an interactive help sidebar with setup instructions for each field.

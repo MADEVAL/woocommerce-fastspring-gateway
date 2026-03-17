@@ -68,6 +68,90 @@
 		}
 	}
 
+	function initGenerateKeyPair() {
+		var l10n = window.wcFsAdminL10n || {};
+		var $textarea = $('#woocommerce_fastspring_private_key');
+		if (!$textarea.length) {
+			return;
+		}
+
+		var $wrap = $('<div class="wc-fs-keygen-wrap"></div>');
+		var $btn = $('<button type="button" class="button wc-fs-generate-keys-btn">' +
+			'<span class="dashicons dashicons-admin-network"></span> ' +
+			(l10n.generateBtn || 'Generate Key Pair') +
+			'</button>');
+		var $status = $('<div class="wc-fs-keygen-status"></div>');
+
+		$wrap.append($btn).append($status);
+		$textarea.after($wrap);
+
+		$btn.on('click', function () {
+			var hasKey = $.trim($textarea.val()).length > 0;
+			if (hasKey && !window.confirm(l10n.confirmOverwrite || 'This will replace your current private key. Continue?')) {
+				return;
+			}
+
+			$btn.prop('disabled', true).text(l10n.generating || 'Generating...');
+			$status.empty();
+
+			$.post(l10n.ajaxUrl, {
+				action: 'wc_fastspring_generate_rsa_keys',
+				nonce: l10n.generateNonce
+			}, function (response) {
+				$btn.prop('disabled', false).html(
+					'<span class="dashicons dashicons-admin-network"></span> ' +
+					(l10n.generateBtn || 'Generate Key Pair')
+				);
+
+				if (response.success) {
+					$textarea.val(response.data.private_key).trigger('change');
+
+					$status.html(
+						'<div class="wc-fs-keygen-success">' +
+						'<span class="dashicons dashicons-yes-alt"></span> ' +
+						(l10n.generateSuccess || 'Keys generated!') +
+						'</div>' +
+						'<a href="#" class="button button-secondary wc-fs-download-cert-btn">' +
+						'<span class="dashicons dashicons-download"></span> ' +
+						(l10n.downloadCert || 'Download Public Certificate') +
+						'</a>'
+					);
+
+					$status.find('.wc-fs-download-cert-btn').on('click', function (e) {
+						e.preventDefault();
+						var blob = new Blob([response.data.certificate], { type: 'application/x-pem-file' });
+						var url = URL.createObjectURL(blob);
+						var a = document.createElement('a');
+						a.href = url;
+						a.download = 'fastspring-publiccert.pem';
+						document.body.appendChild(a);
+						a.click();
+						document.body.removeChild(a);
+						URL.revokeObjectURL(url);
+					});
+				} else {
+					$status.html(
+						'<div class="wc-fs-keygen-error">' +
+						'<span class="dashicons dashicons-warning"></span> ' +
+						(response.data && response.data.message ? response.data.message : (l10n.generateError || 'Key generation failed.')) +
+						'</div>'
+					);
+				}
+			}).fail(function () {
+				$btn.prop('disabled', false).html(
+					'<span class="dashicons dashicons-admin-network"></span> ' +
+					(l10n.generateBtn || 'Generate Key Pair')
+				);
+				$status.html(
+					'<div class="wc-fs-keygen-error">' +
+					'<span class="dashicons dashicons-warning"></span> ' +
+					(l10n.generateError || 'Key generation failed.') +
+					'</div>'
+				);
+			});
+		});
+	}
+
 	function highlightCard(cardId) {
 		var $card = $('[data-help-id="' + cardId + '"]');
 		if (!$card.length) {
@@ -92,6 +176,7 @@
 
 	function init() {
 		addFieldBadges();
+		initGenerateKeyPair();
 
 		$('.wc-fs-settings-main').on('focusin click', 'input, textarea, select', function () {
 			var id = $(this).attr('id') || '';
