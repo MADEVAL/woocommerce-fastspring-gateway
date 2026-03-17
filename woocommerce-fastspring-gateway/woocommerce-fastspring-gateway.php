@@ -3,7 +3,7 @@
  * Plugin Name: WooCommerce FastSpring Gateway
  * Plugin URI:  https://globus.studio
  * Description: Accept credit card, PayPal, Amazon Pay and other payments via FastSpring.
- * Version:     2.0.0
+ * Version:     2.1.0
  * Author:      Yevhen Leonidov
  * Author URI:  https://leonidov.dev
  * Text Domain: woocommerce-fastspring-gateway
@@ -16,6 +16,8 @@
  * WC tested up to: 9.6
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ *
+ * @package GlobusStudio\WooCommerceFastSpring
  */
 
 declare(strict_types=1);
@@ -32,20 +34,23 @@ define( 'WC_FASTSPRING_PLUGIN_DIR', __DIR__ );
  * Maps namespace prefixes to the src/ directory so the plugin works
  * without requiring Composer in production (ZIP install).
  */
-spl_autoload_register( static function ( string $class ): void {
-	$prefix = 'GlobusStudio\\WooCommerceFastSpring\\';
+spl_autoload_register(
+	// phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.classFound -- standard autoloader parameter.
+	static function ( string $class ): void {
+		$prefix = 'GlobusStudio\\WooCommerceFastSpring\\';
 
-	if ( ! str_starts_with( $class, $prefix ) ) {
-		return;
+		if ( ! str_starts_with( $class, $prefix ) ) {
+			return;
+		}
+
+		$relative = substr( $class, strlen( $prefix ) );
+		$file     = WC_FASTSPRING_PLUGIN_DIR . '/src/' . str_replace( '\\', '/', $relative ) . '.php';
+
+		if ( is_file( $file ) ) {
+			require_once $file;
+		}
 	}
-
-	$relative = substr( $class, strlen( $prefix ) );
-	$file     = WC_FASTSPRING_PLUGIN_DIR . '/src/' . str_replace( '\\', '/', $relative ) . '.php';
-
-	if ( is_file( $file ) ) {
-		require_once $file;
-	}
-} );
+);
 
 // Bootstrap the plugin.
 GlobusStudio\WooCommerceFastSpring\Plugin::instance();

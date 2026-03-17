@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<ruleset name="WooCommerce FastSpring Gateway">
+	<description>PHPCS rules for WooCommerce FastSpring Gateway plugin.</description>
+
+	<file>.</file>
+
+	<exclude-pattern>vendor/*</exclude-pattern>
+	<exclude-pattern>node_modules/*</exclude-pattern>
+
+	<arg name="extensions" value="php"/>
+	<arg name="colors"/>
+	<arg value="sp"/>
+
+	<rule ref="WordPress">
+		<!-- PSR-4 autoloading: PascalCase filenames are intentional. -->
+		<exclude name="WordPress.Files.FileName.NotHyphenatedLowercase"/>
+		<exclude name="WordPress.Files.FileName.InvalidClassFileName"/>
+	</rule>
+
+	<config name="minimum_supported_wp_version" value="6.4"/>
+	<config name="text_domain" value="woocommerce-fastspring-gateway"/>
+	<config name="testVersion" value="8.1-"/>
+</ruleset>

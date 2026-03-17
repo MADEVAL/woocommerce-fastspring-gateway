@@ -13,6 +13,9 @@ use GlobusStudio\WooCommerceFastSpring\Admin\Settings;
 use WC_Order;
 use WC_Payment_Gateway;
 
+/**
+ * WooCommerce payment gateway for FastSpring.
+ */
 class Gateway extends WC_Payment_Gateway {
 
 	/**
@@ -206,13 +209,15 @@ class Gateway extends WC_Payment_Gateway {
 		// Add customer contact info.
 		$email = $order->get_billing_email();
 		if ( $email ) {
-			$session_data['contact'] = array_filter( array(
-				'email'   => $email,
-				'first'   => $order->get_billing_first_name(),
-				'last'    => $order->get_billing_last_name(),
-				'company' => $order->get_billing_company(),
-			) );
-			$country = $order->get_billing_country();
+			$session_data['contact'] = array_filter(
+				array(
+					'email'   => $email,
+					'first'   => $order->get_billing_first_name(),
+					'last'    => $order->get_billing_last_name(),
+					'company' => $order->get_billing_company(),
+				)
+			);
+			$country                 = $order->get_billing_country();
 			if ( $country ) {
 				$session_data['country'] = $country;
 			}
@@ -237,7 +242,7 @@ class Gateway extends WC_Payment_Gateway {
 		$order->update_meta_data( '_fs_session_id', sanitize_text_field( $session['id'] ) );
 		$order->save();
 
-		// Build checkout URL: https://{storefront}/session/{session_id}
+		// Build checkout URL: https://{storefront}/session/{session_id}.
 		$storefront   = Plugin::get_storefront_path();
 		$checkout_url = 'https://' . $storefront . '/session/' . rawurlencode( $session['id'] );
 
@@ -374,7 +379,7 @@ class Gateway extends WC_Payment_Gateway {
 	 */
 	public function admin_options(): void {
 		echo '<h2>' . esc_html( $this->get_method_title() );
-		wc_back_link( __( 'Return to payments', 'woocommerce' ), admin_url( 'admin.php?page=wc-settings&tab=checkout' ) );
+		wc_back_link( __( 'Return to payments', 'woocommerce-fastspring-gateway' ), admin_url( 'admin.php?page=wc-settings&tab=checkout' ) );
 		echo '</h2>';
 		echo wp_kses_post( wpautop( $this->get_method_description() ) );
 

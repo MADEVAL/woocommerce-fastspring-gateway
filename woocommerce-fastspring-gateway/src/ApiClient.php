@@ -11,11 +11,31 @@ namespace GlobusStudio\WooCommerceFastSpring;
 
 use WP_Error;
 
+/**
+ * FastSpring REST API client.
+ */
 final class ApiClient {
 
+	/**
+	 * API username.
+	 *
+	 * @var string
+	 */
 	private string $username;
+
+	/**
+	 * API password.
+	 *
+	 * @var string
+	 */
 	private string $password;
 
+	/**
+	 * Constructor.
+	 *
+	 * @param string $username API username.
+	 * @param string $password API password.
+	 */
 	public function __construct( string $username, string $password ) {
 		$this->username = $username;
 		$this->password = $password;
@@ -53,6 +73,7 @@ final class ApiClient {
 			'timeout'   => 30,
 			'sslverify' => true,
 			'headers'   => array(
+				// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- HTTP Basic auth.
 				'Authorization' => 'Basic ' . base64_encode( $this->username . ':' . $this->password ),
 				'Content-Type'  => 'application/json',
 				'User-Agent'    => 'WooCommerceFastSpring/' . Constants::VERSION,
@@ -132,7 +153,7 @@ final class ApiClient {
 			'returns' => array(
 				array(
 					'order'  => sanitize_text_field( $order_id ),
-					'reason' => $reason !== '' ? $reason : 'Refund from WooCommerce',
+					'reason' => '' !== $reason ? $reason : 'Refund from WooCommerce',
 				),
 			),
 		);
@@ -171,10 +192,12 @@ final class ApiClient {
 	 * @return array<string, mixed>|null Updated subscription data or null.
 	 */
 	public function update_subscription( string $subscription_id, array $data ): ?array {
-		$data['subscriptions'] = array(
-			array_merge( array( 'subscription' => sanitize_text_field( $subscription_id ) ), $data ),
+		$body   = array(
+			'subscriptions' => array(
+				array_merge( array( 'subscription' => sanitize_text_field( $subscription_id ) ), $data ),
+			),
 		);
-		$result = $this->request( 'POST', 'subscriptions', $data );
+		$result = $this->request( 'POST', 'subscriptions', $body );
 		return is_wp_error( $result ) ? null : $result;
 	}
 
@@ -185,9 +208,13 @@ final class ApiClient {
 	 * @return bool True on success.
 	 */
 	public function pause_subscription( string $subscription_id ): bool {
-		$result = $this->request( 'POST', 'subscriptions/pause', array(
-			'subscriptions' => array( sanitize_text_field( $subscription_id ) ),
-		) );
+		$result = $this->request(
+			'POST',
+			'subscriptions/pause',
+			array(
+				'subscriptions' => array( sanitize_text_field( $subscription_id ) ),
+			)
+		);
 		return ! is_wp_error( $result );
 	}
 
@@ -198,9 +225,13 @@ final class ApiClient {
 	 * @return bool True on success.
 	 */
 	public function resume_subscription( string $subscription_id ): bool {
-		$result = $this->request( 'POST', 'subscriptions/resume', array(
-			'subscriptions' => array( sanitize_text_field( $subscription_id ) ),
-		) );
+		$result = $this->request(
+			'POST',
+			'subscriptions/resume',
+			array(
+				'subscriptions' => array( sanitize_text_field( $subscription_id ) ),
+			)
+		);
 		return ! is_wp_error( $result );
 	}
 

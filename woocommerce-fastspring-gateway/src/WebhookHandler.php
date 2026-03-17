@@ -11,8 +11,12 @@ namespace GlobusStudio\WooCommerceFastSpring;
 
 use WC_Order;
 
+/**
+ * Handle incoming FastSpring webhook events.
+ */
 final class WebhookHandler {
 
+	/** Register the webhook listener. */
 	public function __construct() {
 		add_action( 'woocommerce_api_wc_gateway_fastspring', array( $this, 'handle_request' ) );
 	}
@@ -41,7 +45,7 @@ final class WebhookHandler {
 			$remote_ip = isset( $_SERVER['REMOTE_ADDR'] )
 				? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) )
 				: '';
-			if ( $remote_ip !== Constants::WEBHOOK_IP ) {
+			if ( Constants::WEBHOOK_IP !== $remote_ip ) {
 				Plugin::log( sprintf( 'Webhook: rejected IP %s.', $remote_ip ), 'error' );
 				wp_send_json_error( 'Forbidden', 403 );
 				return;
@@ -93,16 +97,18 @@ final class WebhookHandler {
 			return false;
 		}
 
-		// Do not sanitize: base64 signature must be compared byte-for-byte.
+		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- raw base64 signature for byte-for-byte HMAC comparison.
 		$signature = isset( $_SERVER['HTTP_X_FS_SIGNATURE'] )
 			? trim( (string) wp_unslash( $_SERVER['HTTP_X_FS_SIGNATURE'] ) )
 			: '';
+		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 
 		if ( '' === $signature ) {
 			Plugin::log( 'Webhook: missing X-FS-Signature header, rejecting.', 'error' );
 			return false;
 		}
 
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- HMAC signature encoding.
 		$expected = base64_encode( hash_hmac( 'sha256', $raw_body, $secret, true ) );
 
 		return hash_equals( $expected, $signature );
@@ -168,9 +174,14 @@ final class WebhookHandler {
 	}
 
 	// -------------------------------------------------------------------------
-	// Event handlers
+	// Event handlers.
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Handle order.completed event.
+	 *
+	 * @param object $event FastSpring event.
+	 */
 	private function on_order_completed( object $event ): void {
 		$order = $this->find_order( $event );
 		if ( ! $order ) {
@@ -191,15 +202,23 @@ final class WebhookHandler {
 			$order->update_meta_data( '_fs_order_id', $fs_order_id );
 		}
 
-		/* translators: %s: FastSpring reference ID */
 		$order->add_order_note(
-			sprintf( __( 'FastSpring payment completed (Ref: %s).', 'woocommerce-fastspring-gateway' ), $reference )
+			sprintf(
+				/* translators: %s: FastSpring reference ID */
+				__( 'FastSpring payment completed (Ref: %s).', 'woocommerce-fastspring-gateway' ),
+				$reference
+			)
 		);
 		$order->save();
 
 		Plugin::log( sprintf( 'Webhook: order #%d completed.', $order->get_id() ) );
 	}
 
+	/**
+	 * Handle order.failed event.
+	 *
+	 * @param object $event FastSpring event.
+	 */
 	private function on_order_failed( object $event ): void {
 		$order = $this->find_order( $event );
 		if ( ! $order ) {
@@ -210,6 +229,11 @@ final class WebhookHandler {
 		Plugin::log( sprintf( 'Webhook: order #%d failed.', $order->get_id() ) );
 	}
 
+	/**
+	 * Handle order.canceled event.
+	 *
+	 * @param object $event FastSpring event.
+	 */
 	private function on_order_canceled( object $event ): void {
 		$order = $this->find_order( $event );
 		if ( ! $order ) {
@@ -220,6 +244,11 @@ final class WebhookHandler {
 		Plugin::log( sprintf( 'Webhook: order #%d cancelled.', $order->get_id() ) );
 	}
 
+	/**
+	 * Handle return.created event.
+	 *
+	 * @param object $event FastSpring event.
+	 */
 	private function on_return_created( object $event ): void {
 		$order = $this->find_order( $event );
 		if ( ! $order ) {
@@ -230,6 +259,11 @@ final class WebhookHandler {
 		Plugin::log( sprintf( 'Webhook: order #%d refunded.', $order->get_id() ) );
 	}
 
+	/**
+	 * Handle subscription.activated event.
+	 *
+	 * @param object $event FastSpring event.
+	 */
 	private function on_subscription_activated( object $event ): void {
 		$order = $this->find_order( $event );
 		if ( ! $order ) {
@@ -246,6 +280,11 @@ final class WebhookHandler {
 		Plugin::log( sprintf( 'Webhook: subscription for order #%d activated.', $order->get_id() ) );
 	}
 
+	/**
+	 * Handle subscription.canceled event.
+	 *
+	 * @param object $event FastSpring event.
+	 */
 	private function on_subscription_canceled( object $event ): void {
 		$order = $this->find_order( $event );
 		if ( ! $order ) {
@@ -256,6 +295,11 @@ final class WebhookHandler {
 		Plugin::log( sprintf( 'Webhook: subscription for order #%d cancelled.', $order->get_id() ) );
 	}
 
+	/**
+	 * Handle subscription.deactivated event.
+	 *
+	 * @param object $event FastSpring event.
+	 */
 	private function on_subscription_deactivated( object $event ): void {
 		$order = $this->find_order( $event );
 		if ( ! $order ) {
@@ -266,6 +310,11 @@ final class WebhookHandler {
 		Plugin::log( sprintf( 'Webhook: subscription for order #%d deactivated.', $order->get_id() ) );
 	}
 
+	/**
+	 * Handle subscription.uncanceled event.
+	 *
+	 * @param object $event FastSpring event.
+	 */
 	private function on_subscription_uncanceled( object $event ): void {
 		$order = $this->find_order( $event );
 		if ( ! $order ) {
@@ -276,6 +325,11 @@ final class WebhookHandler {
 		Plugin::log( sprintf( 'Webhook: subscription for order #%d uncanceled.', $order->get_id() ) );
 	}
 
+	/**
+	 * Handle subscription.paused event.
+	 *
+	 * @param object $event FastSpring event.
+	 */
 	private function on_subscription_paused( object $event ): void {
 		$order = $this->find_order( $event );
 		if ( ! $order ) {
@@ -286,6 +340,11 @@ final class WebhookHandler {
 		Plugin::log( sprintf( 'Webhook: subscription for order #%d paused.', $order->get_id() ) );
 	}
 
+	/**
+	 * Handle subscription.resumed event.
+	 *
+	 * @param object $event FastSpring event.
+	 */
 	private function on_subscription_resumed( object $event ): void {
 		$order = $this->find_order( $event );
 		if ( ! $order ) {
@@ -296,15 +355,20 @@ final class WebhookHandler {
 		Plugin::log( sprintf( 'Webhook: subscription for order #%d resumed.', $order->get_id() ) );
 	}
 
+	/**
+	 * Handle subscription.charge.completed event.
+	 *
+	 * @param object $event FastSpring event.
+	 */
 	private function on_subscription_charge_completed( object $event ): void {
 		$order = $this->find_order( $event );
 		if ( ! $order ) {
 			return;
 		}
 
-		/* translators: %s: charge reference */
 		$order->add_order_note(
 			sprintf(
+				/* translators: %s: charge reference */
 				__( 'FastSpring subscription charge completed (Ref: %s).', 'woocommerce-fastspring-gateway' ),
 				sanitize_text_field( $event->data->reference ?? 'N/A' )
 			)
@@ -314,6 +378,11 @@ final class WebhookHandler {
 		Plugin::log( sprintf( 'Webhook: subscription charge completed for order #%d.', $order->get_id() ) );
 	}
 
+	/**
+	 * Handle subscription.charge.failed event.
+	 *
+	 * @param object $event FastSpring event.
+	 */
 	private function on_subscription_charge_failed( object $event ): void {
 		$order = $this->find_order( $event );
 		if ( ! $order ) {

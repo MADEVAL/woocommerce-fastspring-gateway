@@ -9,9 +9,12 @@ declare(strict_types=1);
 
 namespace GlobusStudio\WooCommerceFastSpring;
 
+/**
+ * Plugin constants.
+ */
 final class Constants {
 
-	public const VERSION         = '2.0.0';
+	public const VERSION         = '2.1.0';
 	public const API_BASE_URL    = 'https://api.fastspring.com';
 	public const MIN_PHP_VERSION = '8.1.0';
 	public const MIN_WC_VERSION  = '8.0.0';
@@ -22,5 +25,6 @@ final class Constants {
 	public const SETTINGS_KEY    = 'woocommerce_fastspring_settings';
 	public const WEBHOOK_IP      = '107.23.30.83';
 
+	/** Prevent instantiation. */
 	private function __construct() {}
 }

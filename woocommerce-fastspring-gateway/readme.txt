@@ -6,7 +6,7 @@ Tested up to: 6.7
 Requires PHP: 8.1
 WC requires at least: 8.0
 WC tested up to: 9.6
-Stable tag: 2.0.0
+Stable tag: 2.1.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -76,6 +76,17 @@ Log in to your FastSpring Dashboard > Developer Tools > API Credentials. Create 
 Yes. Unlike previous versions, HMAC SHA256 signature validation is always enforced. Webhook requests without a valid signature are rejected.
 
 == Changelog ==
+
+= 2.1.0 =
+* **Fix:** Resolved recursive data reference bug in ApiClient::update_subscription().
+* Full WordPress Coding Standards (WPCS 3.3) compliance.
+* PHPDoc comments for all classes, properties, and methods.
+* Yoda conditions enforced throughout the codebase.
+* Proper translators comments for all translatable strings with placeholders.
+* phpcs:ignore annotations for legitimate base64_encode and raw $_SERVER usage (API auth, HMAC signatures).
+* Inline code style cleanup (line endings, multi-line formatting, comment punctuation).
+* Added @package tag to main plugin file header.
+* Added phpcs.xml.dist configuration for WordPress standard.
 
 = 2.0.0 =
 * **Breaking:** Replaced Store Builder Library popup with FastSpring Sessions API redirect checkout.

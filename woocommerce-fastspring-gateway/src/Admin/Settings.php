@@ -9,8 +9,12 @@ declare(strict_types=1);
 
 namespace GlobusStudio\WooCommerceFastSpring\Admin;
 
+/**
+ * Gateway settings field definitions and help sidebar.
+ */
 final class Settings {
 
+	/** Prevent instantiation. */
 	private function __construct() {}
 
 	/**

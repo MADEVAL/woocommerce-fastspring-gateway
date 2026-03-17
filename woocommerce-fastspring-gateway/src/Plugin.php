@@ -11,14 +11,30 @@ namespace GlobusStudio\WooCommerceFastSpring;
 
 use Automattic\WooCommerce\Utilities\FeaturesUtil;
 
+/**
+ * Plugin bootstrap and core functionality.
+ */
 final class Plugin {
 
+	/**
+	 * Singleton instance.
+	 *
+	 * @var self|null
+	 */
 	private static ?self $instance = null;
 
-	/** @var array<string, mixed>|null */
+	/**
+	 * Cached settings.
+	 *
+	 * @var array<string, mixed>|null
+	 */
 	private static ?array $settings_cache = null;
 
-	/** @var array<string, array{class: string, message: string}> */
+	/**
+	 * Admin notices.
+	 *
+	 * @var array<string, array{class: string, message: string}>
+	 */
 	private array $notices = array();
 
 	/**
@@ -31,6 +47,7 @@ final class Plugin {
 		return self::$instance;
 	}
 
+	/** Register core hooks. */
 	private function __construct() {
 		add_action( 'before_woocommerce_init', array( $this, 'declare_compatibility' ) );
 		add_action( 'admin_init', array( $this, 'check_environment' ) );
@@ -38,8 +55,14 @@ final class Plugin {
 		add_action( 'plugins_loaded', array( $this, 'init' ) );
 	}
 
+	/** Prevent cloning. */
 	private function __clone() {}
 
+	/**
+	 * Prevent unserializing.
+	 *
+	 * @throws \RuntimeException Always.
+	 */
 	public function __wakeup(): void {
 		throw new \RuntimeException( 'Cannot unserialize singleton.' );
 	}
@@ -98,12 +121,14 @@ final class Plugin {
 	 * Render FastSpring Product Path field on the product edit screen.
 	 */
 	public function render_product_fastspring_field(): void {
-		woocommerce_wp_text_input( array(
-			'id'          => '_fastspring_product_path',
-			'label'       => __( 'FastSpring Product Path', 'woocommerce-fastspring-gateway' ),
-			'description' => __( 'The product path from your FastSpring dashboard (e.g. "my-software"). Falls back to SKU if empty.', 'woocommerce-fastspring-gateway' ),
-			'desc_tip'    => true,
-		) );
+		woocommerce_wp_text_input(
+			array(
+				'id'          => '_fastspring_product_path',
+				'label'       => __( 'FastSpring Product Path', 'woocommerce-fastspring-gateway' ),
+				'description' => __( 'The product path from your FastSpring dashboard (e.g. "my-software"). Falls back to SKU if empty.', 'woocommerce-fastspring-gateway' ),
+				'desc_tip'    => true,
+			)
+		);
 	}
 
 	/**
@@ -112,6 +137,7 @@ final class Plugin {
 	 * @param int $post_id Product post ID.
 	 */
 	public function save_product_meta( int $post_id ): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce is verified immediately after.
 		if ( ! isset( $_POST['_fastspring_product_path'] ) ) {
 			return;
 		}
@@ -136,8 +162,6 @@ final class Plugin {
 		);
 		return array_merge( $plugin_links, $links );
 	}
-
-
 
 	// -------------------------------------------------------------------------
 	// Environment checks
@@ -174,7 +198,7 @@ final class Plugin {
 		$on_settings_page = ( 'wc-settings' === $page && 'fastspring' === $section );
 
 		if ( $missing && ! $on_settings_page ) {
-			$url                            = admin_url( 'admin.php?page=wc-settings&tab=checkout&section=fastspring' );
+			$url                             = admin_url( 'admin.php?page=wc-settings&tab=checkout&section=fastspring' );
 			$this->notices['setup_required'] = array(
 				'class'   => 'notice notice-warning',
 				'message' => sprintf(
@@ -238,8 +262,6 @@ final class Plugin {
 		return '';
 	}
 
-
-
 	// -------------------------------------------------------------------------
 	// Settings helpers
 	// -------------------------------------------------------------------------
@@ -252,7 +274,7 @@ final class Plugin {
 	 */
 	public static function get_setting( string $key ): mixed {
 		if ( null === self::$settings_cache ) {
-			$settings = get_option( Constants::SETTINGS_KEY, array() );
+			$settings             = get_option( Constants::SETTINGS_KEY, array() );
 			self::$settings_cache = is_array( $settings ) ? $settings : array();
 		}
 		return self::$settings_cache[ $key ] ?? null;
