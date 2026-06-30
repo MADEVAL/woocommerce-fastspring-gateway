@@ -1,5 +1,9 @@
 # WooCommerce FastSpring Gateway
 
+[![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
+[![WordPress](https://img.shields.io/badge/WordPress-plugin-blue.svg)](https://wordpress.org/)
+[![PHP](https://img.shields.io/badge/PHP-%3E%3D7.4-777BB4.svg)](https://www.php.net/)
+
 Accept credit card, PayPal, Amazon Pay and other payments on your WooCommerce store through FastSpring.
 
 ## What it does
